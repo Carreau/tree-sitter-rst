@@ -140,6 +140,28 @@ Some text:
     (list_item
       (body (paragraph (interpreted_text))))))
 
+===================================
+Multiline bullet list with long text
+===================================
+
+- This is a very long bullet point that wraps around to multiple lines
+  when the content exceeds the typical line width
+- This is another long bullet point that also wraps
+  to multiple lines in the rendered output
+- And a third one for good measure that also wraps
+  around the screen quite nicely
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))))
+
 ================================
 Bullet list in block quote
 ================================
@@ -188,7 +210,7 @@ Bullet list in block quote, whitespace blank line
 ================================================
 
 Some text
-   
+
  - item1
  - item2
 
