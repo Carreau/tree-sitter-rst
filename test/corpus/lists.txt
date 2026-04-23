@@ -182,6 +182,57 @@ Multiline bullet with inline markup
       (body
         (paragraph (emphasis))))))
 
+===============================================
+Bullet list with text that looks like definition
+===============================================
+
+- This looks like a definition term because of this colon :
+  but it's actually a bullet list item
+- Another one: also with a colon
+  on the next line
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body
+        (paragraph)))
+    (list_item
+      (body
+        (paragraph)))))
+
+================================================
+Multiple wrapped items with various indentation
+================================================
+
+- First very long item that wraps to the next line
+  and has continuation text here
+- Second item that also has long text and wraps
+  to another line with more content
+  and potentially more continuation
+- Third short item
+- Fourth item with text that continues
+  on the next line but is shorter than others
+- Fifth and final item that wraps across
+  multiple lines with some **bold** text
+  and more content on the last line
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph (strong))))))
+
 ================================
 Bullet list in block quote
 ================================
