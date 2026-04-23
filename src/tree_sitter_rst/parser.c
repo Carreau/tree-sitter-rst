@@ -1509,8 +1509,13 @@ static bool parse_inner_role(RSTScanner* scanner)
   if (ok) {
     if (scanner->lookahead == '`' && valid_symbols[T_ROLE_NAME_PREFIX]) {
       lexer->mark_end(lexer);
-      lexer->result_symbol = T_ROLE_NAME_PREFIX;
-      return true;
+      scanner->advance(scanner);
+      if (scanner->lookahead != '`') {
+        // Single backtick: valid role prefix syntax :role:`...`
+        lexer->result_symbol = T_ROLE_NAME_PREFIX;
+        return true;
+      }
+      // Double backtick after role name is literal syntax, not a role prefix.
     }
 
     if (is_space(scanner->lookahead) && valid_symbols[T_FIELD_MARK]) {

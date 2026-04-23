@@ -214,6 +214,18 @@ Edge cases:
       (field_name (interpreted_text))
       (field_body (paragraph)))))
 
+=======================================================
+Interpreted text with roles - double backtick (invalid)
+=======================================================
+
+:attr:``numpy.ufunc.identity``
+
+---
+
+(document
+  (paragraph
+    (literal)))
+
 ===============
 Inline literals
 ===============
