@@ -162,6 +162,26 @@ Multiline bullet list with long text
     (list_item
       (body (paragraph)))))
 
+==========================================
+Multiline bullet with inline markup
+==========================================
+
+- **Bold text that continues**
+  on the next line
+- *Italic text that also*
+  wraps to the next line
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body
+        (paragraph (strong))))
+    (list_item
+      (body
+        (paragraph (emphasis))))))
+
 ================================
 Bullet list in block quote
 ================================
