@@ -67,7 +67,6 @@ Requirements:
 
 - Node
 - A C compiler (clang is preferred)
-- Docker (only if you want to see your changes on the browser)
 
 Install the requirements with:
 
@@ -99,17 +98,17 @@ npm run parse -- test.rst
 Test the grammar on your browser:
 
 ```bash
-npm run web
+npm start
 ```
 
-Note: if you changed the grammar, you need to rebuild it and run
-`npm run wasm` (requires docker).
+Note: if you changed the grammar, you need to re-build it with `npm run build` first.
+`npm start` will automatically rebuild the WASM before launching the playground.
 
 Some times you may find useful to compare the output of docutils for a given RST document,
 since the reStructuredText specification doesn't contain/explain all edge cases.
 
 ```
 pip install docutils
-rst2html5.py test.rst out.html
+rst2html5 test.rst out.html
 xdg-open out.html
 ```
