@@ -188,7 +188,7 @@ Bullet list in block quote, whitespace blank line
 ================================================
 
 Some text
-   
+
  - item1
  - item2
 

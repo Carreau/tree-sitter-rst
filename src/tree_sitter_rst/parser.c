@@ -1482,6 +1482,14 @@ static bool parse_role(RSTScanner* scanner)
       }
       scanner->advance(scanner);
     }
+
+    // Check if the next line is at a lower indentation than the current context
+    // and starts with a character bullet. This indicates a new list item above us,
+    // not a field body — so the colon is plain text, not a field mark end.
+    if (indent < scanner->back(scanner) && is_char_bullet(scanner->lookahead)) {
+      return false;
+    }
+
     if (indent > scanner->back(scanner)) {
       scanner->push(scanner, indent);
     } else {
