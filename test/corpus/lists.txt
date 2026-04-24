@@ -202,3 +202,25 @@ Some text
         (body (paragraph)))
       (list_item
         (body (paragraph))))))
+
+===================================================
+Dash bullet list in block quote, wrapping items
+===================================================
+
+Some paragraph
+
+    - Item one
+      with continuation
+    - Item two
+      with continuation
+
+---
+
+(document
+  (paragraph)
+  (block_quote
+    (bullet_list
+      (list_item
+        (body (paragraph)))
+      (list_item
+        (body (paragraph))))))
