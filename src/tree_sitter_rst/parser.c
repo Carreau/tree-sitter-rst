@@ -1482,6 +1482,13 @@ static bool parse_role(RSTScanner* scanner)
       }
       scanner->advance(scanner);
     }
+
+    // Check if the next line is at the same or lower indentation as the current level
+    // and starts with a character bullet. This indicates a new bullet list item, not a field body.
+    if (indent <= scanner->back(scanner) && is_char_bullet(scanner->lookahead)) {
+      return false;
+    }
+
     if (indent > scanner->back(scanner)) {
       scanner->push(scanner, indent);
     } else {
