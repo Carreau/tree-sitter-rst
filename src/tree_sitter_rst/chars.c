@@ -40,23 +40,17 @@ static bool is_space(int32_t c)
 
 static bool is_number(int32_t c)
 {
-  const int32_t upper = 48;
-  const int32_t lower = 57;
-  return c >= upper && c <= lower;
+  return c >= '0' && c <= '9';
 }
 
 static bool is_abc_lower(int32_t c)
 {
-  const int32_t upper = 97;
-  const int32_t lower = 122;
-  return c >= upper && c <= lower;
+  return c >= 'a' && c <= 'z';
 }
 
 static bool is_abc_upper(int32_t c)
 {
-  const int32_t upper = 65;
-  const int32_t lower = 90;
-  return c >= upper && c <= lower;
+  return c >= 'A' && c <= 'Z';
 }
 
 static bool is_abc(int32_t c)
