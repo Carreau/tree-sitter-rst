@@ -4,17 +4,17 @@
 #include "scanner.h"
 #include "tokens.h"
 
-static const unsigned IM_NONE                    = 0u;
-static const unsigned IM_EMPHASIS                = 1u << 0u;
-static const unsigned IM_STRONG                  = 1u << 1u;
-static const unsigned IM_INTERPRETED_TEXT        = 1u << 2u;
+static const unsigned IM_NONE = 0u;
+static const unsigned IM_EMPHASIS = 1u << 0u;
+static const unsigned IM_STRONG = 1u << 1u;
+static const unsigned IM_INTERPRETED_TEXT = 1u << 2u;
 static const unsigned IM_INTERPRETED_TEXT_PREFIX = 1u << 3u;
-static const unsigned IM_LITERAL                 = 1u << 4u;
-static const unsigned IM_SUBSTITUTION_REFERENCE  = 1u << 5u;
-static const unsigned IM_INLINE_TARGET           = 1u << 6u;
-static const unsigned IM_FOOTNOTE_REFERENCE      = 1u << 7u;
-static const unsigned IM_CITATION_REFERENCE      = 1u << 8u;
-static const unsigned IM_REFERENCE               = 1u << 9u;
+static const unsigned IM_LITERAL = 1u << 4u;
+static const unsigned IM_SUBSTITUTION_REFERENCE = 1u << 5u;
+static const unsigned IM_INLINE_TARGET = 1u << 6u;
+static const unsigned IM_FOOTNOTE_REFERENCE = 1u << 7u;
+static const unsigned IM_CITATION_REFERENCE = 1u << 8u;
+static const unsigned IM_REFERENCE = 1u << 9u;
 
 static bool parse_indent(RSTScanner* scanner);
 static bool parse_overline(RSTScanner* scanner);

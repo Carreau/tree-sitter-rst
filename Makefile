@@ -122,11 +122,40 @@ serve: all
 
 format:
 	clang-format -i \
-	  --style="{BasedOnStyle: webkit, IndentWidth: 2}" \
+	  --style="{BasedOnStyle: webkit, IndentWidth: 2, IndentCaseLabels: true}" \
 	  src/scanner.c \
 	  src/tree_sitter_rst/*
+
+# Lint targets — run all three with `make lint`
+# clang-tidy uses --line-filter so only hand-written files are reported;
+# generated parser.c files are compiled for analysis but their diagnostics
+# are suppressed.
+CLANG_TIDY_LINE_FILTER := [{"name":"src/scanner.c"},{"name":"tree_sitter_rst/scanner.c"},{"name":"tree_sitter_rst/chars.c"}]
+
+lint: lint-format lint-tidy lint-cppcheck
+
+lint-format:
+	clang-format --dry-run --Werror \
+	  --style="{BasedOnStyle: webkit, IndentWidth: 2, IndentCaseLabels: true}" \
+	  src/scanner.c \
+	  src/tree_sitter_rst/*
+
+lint-tidy:
+	clang-tidy \
+	  --line-filter='$(CLANG_TIDY_LINE_FILTER)' \
+	  src/scanner.c \
+	  -- -Isrc/ -std=c11
+
+lint-cppcheck:
+	cppcheck --enable=warning,performance \
+	  --error-exitcode=1 \
+	  --suppress=missingIncludeSystem \
+	  --suppress='uninitvar:*/parser.c' \
+	  --suppress='cstyleCast:*/parser.c' \
+	  -Isrc/ \
+	  src/scanner.c
 
 gen-punctuation-chars:
 	./utils/gen_punctuation_chars.py > ./src/tree_sitter_rst/punctuation_chars.h
 
-.PHONY: all install uninstall clean test release update-examples parse-examples serve format
+.PHONY: all install uninstall clean test release update-examples parse-examples serve format lint lint-format lint-tidy lint-cppcheck

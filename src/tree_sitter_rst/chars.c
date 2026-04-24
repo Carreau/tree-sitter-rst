@@ -66,11 +66,38 @@ static bool is_alphanumeric(int32_t c)
 static bool is_adornment_char(int32_t c)
 {
   switch (c) {
-    case '!': case '"': case '#': case '$': case '%': case '&': case '\'':
-    case '(': case ')': case '*': case '+': case ',': case '-': case '.':
-    case '/': case ':': case ';': case '<': case '=': case '>': case '?':
-    case '@': case '[': case '\\': case ']': case '^': case '_': case '`':
-    case '{': case '|': case '}': case '~':
+    case '!':
+    case '"':
+    case '#':
+    case '$':
+    case '%':
+    case '&':
+    case '\'':
+    case '(':
+    case ')':
+    case '*':
+    case '+':
+    case ',':
+    case '-':
+    case '.':
+    case '/':
+    case ':':
+    case ';':
+    case '<':
+    case '=':
+    case '>':
+    case '?':
+    case '@':
+    case '[':
+    case '\\':
+    case ']':
+    case '^':
+    case '_':
+    case '`':
+    case '{':
+    case '|':
+    case '}':
+    case '~':
       return true;
     default:
       return false;
@@ -206,7 +233,13 @@ static bool is_numeric_bullet_simple(int32_t c)
 static bool is_numeric_bullet_roman_lower(int32_t c)
 {
   switch (c) {
-    case 'i': case 'v': case 'x': case 'l': case 'c': case 'd': case 'm':
+    case 'i':
+    case 'v':
+    case 'x':
+    case 'l':
+    case 'c':
+    case 'd':
+    case 'm':
       return true;
     default:
       return false;
@@ -216,7 +249,13 @@ static bool is_numeric_bullet_roman_lower(int32_t c)
 static bool is_numeric_bullet_roman_upper(int32_t c)
 {
   switch (c) {
-    case 'I': case 'V': case 'X': case 'L': case 'C': case 'D': case 'M':
+    case 'I':
+    case 'V':
+    case 'X':
+    case 'L':
+    case 'C':
+    case 'D':
+    case 'M':
       return true;
     default:
       return false;
@@ -267,7 +306,12 @@ static int get_indent_level(RSTScanner* scanner)
 static bool is_known_schema(const char* string, unsigned string_len)
 {
   static const char* const valid_schemas[] = {
-    "http", "https", "ftp", "mailto", "telnet", "ssh",
+    "http",
+    "https",
+    "ftp",
+    "mailto",
+    "telnet",
+    "ssh",
   };
   const int length = sizeof(valid_schemas) / sizeof(valid_schemas[0]);
   for (int i = 0; i < length; i++) {
