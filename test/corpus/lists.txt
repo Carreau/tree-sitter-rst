@@ -139,3 +139,66 @@ Some text:
       (body (paragraph (strong))))
     (list_item
       (body (paragraph (interpreted_text))))))
+
+================================
+Bullet list in block quote
+================================
+
+Some text
+
+ - item1
+ - item2
+
+---
+
+(document
+  (paragraph)
+  (block_quote
+    (bullet_list
+      (list_item
+        (body (paragraph)))
+      (list_item
+        (body (paragraph))))))
+
+=============================================
+Bullet list in block quote, paragraph first
+=============================================
+
+Some text
+
+  A block quote paragraph
+
+  - item1
+  - item2
+
+---
+
+(document
+  (paragraph)
+  (block_quote
+    (paragraph)
+    (bullet_list
+      (list_item
+        (body (paragraph)))
+      (list_item
+        (body (paragraph))))))
+
+================================================
+Bullet list in block quote, whitespace blank line
+================================================
+
+Some text
+   
+ - item1
+ - item2
+
+---
+
+(document
+  (paragraph)
+  (block_quote
+    (bullet_list
+      (list_item
+        (body (paragraph)))
+      (list_item
+        (body (paragraph))))))

@@ -37,7 +37,10 @@ static bool parse_indent(RSTScanner* scanner)
   }
 
   int current_indent = scanner->back(scanner);
-  if (indent > current_indent && valid_symbols[T_INDENT]) {
+  // T_INDENT is only valid when there are no blank lines preceding the
+  // indented content. With blank lines, T_BLANKLINE must be emitted first.
+  if (indent > current_indent && valid_symbols[T_INDENT]
+      && (newlines == 0 || !valid_symbols[T_BLANKLINE])) {
     scanner->push(scanner, indent);
     lexer->result_symbol = T_INDENT;
     return true;
@@ -1052,6 +1055,12 @@ static bool parse_attribution_mark(RSTScanner* scanner)
     }
 
     if (consumed_chars < 2 || consumed_chars > 3) {
+      // A single dash followed by a space is a char bullet, not an attribution.
+      // parse_char_bullet can't be tried after this point because we've already
+      // advanced past the dash, so handle the fallback here.
+      if (consumed_chars == 1 && is_space(scanner->lookahead) && valid_symbols[T_CHAR_BULLET]) {
+        return parse_inner_list_element(scanner, 1, T_CHAR_BULLET);
+      }
       return false;
     }
   } else {
