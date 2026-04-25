@@ -76,6 +76,14 @@ module.exports = grammar({
     $._empty_comment,
 
     $._invalid_token,
+
+    // Zero-width guard emitted by the scanner immediately after a
+    // classifier separator (` : `) when the line is followed by a more
+    // deeply indented continuation. Without this, tree-sitter's JS-level
+    // ``<ws>:<ws>`` token greedily commits to the definition-list branch
+    // for any colon with surrounding whitespace -- including those inside
+    // paragraphs, bullet items, and footnote bodies.
+    $._classifier_indent_check,
   ],
 
   extras: $ => [
@@ -288,6 +296,7 @@ module.exports = grammar({
     _classifiers: $ => repeat1(
       seq(
         alias(token(seq(repeat1(WHITE_SPACE), ':', repeat1(WHITE_SPACE))), ':'),
+        $._classifier_indent_check,
         alias(repeat1($._inline_markup), $.classifier),
       ),
     ),

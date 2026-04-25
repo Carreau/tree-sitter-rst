@@ -109,11 +109,43 @@ static void rst_scanner_deserialize(RSTScanner* scanner, const char* buffer, uns
   }
 }
 
+/// Zero-width lookahead: from the position right after a classifier
+/// separator ( ``term : classifier``), peek to the end of the current line,
+/// skip blank lines, and require the next non-blank line to be indented
+/// strictly deeper than the current scope. Without this guard the JS-level
+/// ``<ws>:<ws>`` classifier token fires in any context where the GLR parser
+/// is exploring a definition-list term -- including bullet items, paragraphs,
+/// and footnote bodies.
+static bool rst_scanner_check_classifier_indent(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  // mark_end at the current position so we emit a zero-width token.
+  lexer->mark_end(lexer);
+  advance_to_next_line(scanner);
+  int indent = skip_blank_lines_get_indent(scanner);
+  if (scanner->lookahead == CHAR_EOF) {
+    return false;
+  }
+  if (indent <= scanner->back(scanner)) {
+    return false;
+  }
+  lexer->result_symbol = T_CLASSIFIER_INDENT_CHECK;
+  return true;
+}
+
 static bool rst_scanner_scan(RSTScanner* scanner)
 {
   TSLexer* lexer = scanner->lexer;
   const bool* valid_symbols = scanner->valid_symbols;
   int32_t current = lexer->lookahead;
+
+  // Zero-width guard: when the parser is poised right after a classifier
+  // separator, accept the token only if a deeper-indented continuation
+  // follows on a later line.
+  if (valid_symbols[T_CLASSIFIER_INDENT_CHECK]
+      && !valid_symbols[T_INVALID_TOKEN]) {
+    return rst_scanner_check_classifier_indent(scanner);
+  }
 
   // If all valid symbols are true, tree-sitter is in correction mode,
   // we fallback to parse the content as a text node.

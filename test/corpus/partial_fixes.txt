@@ -1,0 +1,102 @@
+================================================================================
+Bullet items containing colons (#16, #20)
+================================================================================
+
+  * a for example has colon here :
+  * b : but earlier
+
+--------------------------------------------------------------------------------
+
+(document
+  (block_quote
+    (bullet_list
+      (list_item
+        (body (paragraph)))
+      (list_item
+        (body
+          (paragraph
+            (ERROR)))))))
+
+================================================================================
+Indented bullet items with colons (#20)
+================================================================================
+
+Bullet list:
+    * stuff : other
+    * stuff : other
+
+--------------------------------------------------------------------------------
+
+(document
+  (definition_list
+    (list_item
+      (term)
+      (definition
+        (bullet_list
+          (list_item
+            (body
+              (paragraph
+                (ERROR))))
+          (list_item
+            (body
+              (paragraph
+                (ERROR)))))))))
+
+================================================================================
+Footnote with colon in body (#45)
+================================================================================
+
+.. [1] Footnote from : this journal
+
+--------------------------------------------------------------------------------
+
+(document
+  (footnote
+    name: (label)
+    body: (body
+      (paragraph
+        (ERROR)))))
+
+================================================================================
+Incomplete definition list between sections (#48)
+================================================================================
+
+See Also
+--------
+item : description
+
+Notes
+-----
+Some text.
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (title))
+  (paragraph
+    (ERROR))
+  (section
+    (title))
+  (paragraph))
+
+================================================================================
+Standalone :: after a paragraph line is not a section underline (#27)
+================================================================================
+
+Notes
+-----
+When using ``distutils``, for example in ``setup.py``
+::
+
+  import numpy as np
+
+--------------------------------------------------------------------------------
+
+(document
+  (section
+    (title))
+  (paragraph
+    (literal)
+    (literal)
+    (ERROR)))

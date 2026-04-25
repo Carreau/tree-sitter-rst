@@ -445,6 +445,10 @@
             "value": ":"
           },
           {
+            "type": "SYMBOL",
+            "name": "_classifier_indent_check"
+          },
+          {
             "type": "ALIAS",
             "content": {
               "type": "REPEAT1",
@@ -1754,6 +1758,10 @@
     {
       "type": "SYMBOL",
       "name": "_invalid_token"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_classifier_indent_check"
     }
   ],
   "inline": [],

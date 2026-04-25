@@ -202,3 +202,47 @@ Some text
         (body (paragraph)))
       (list_item
         (body (paragraph))))))
+
+================================================
+Long bullet list paragraphs (#14)
+================================================
+
+- there are many variations of passages of lorem ipsum available, but the
+  majority have suffered alteration in some form, by injected humour, or
+  randomised words which don't look even slightly believable.
+
+- there are many variations of passages of lorem ipsum available, but the
+  majority have suffered alteration in some form, by injected humour, or
+  randomised words which don't look even slightly believable.
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body (paragraph))))
+  (bullet_list
+    (list_item
+      (body (paragraph)))))
+
+================================================
+Long enumerated list paragraphs (#14)
+================================================
+
+1. There are many variations of passages of Lorem Ipsum available, but the
+   majority have suffered alteration in some form, by injected humour, or
+   randomised words which don't look even slightly believable.
+
+2. There are many variations of Lorem Ipsum available, but the majority have
+   suffered alteration in some form, by injected humour, or randomised words
+   which don't look even slightly believable.
+
+---
+
+(document
+  (enumerated_list
+    (list_item
+      (body (paragraph))))
+  (enumerated_list
+    (list_item
+      (body (paragraph)))))
