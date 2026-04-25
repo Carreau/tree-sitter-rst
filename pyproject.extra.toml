@@ -1,0 +1,10 @@
+# Sections appended to pyproject.toml after `tree-sitter generate`.
+#
+# `tree-sitter generate` rewrites pyproject.toml from a template and would
+# drop any hand-added sections. Anything we want to preserve across
+# regenerations lives here and is re-appended by `utils/apply_pyproject_extras.py`
+# (run via `make generate-bindings`).
+
+[tool.cibuildwheel]
+build = "cp310-*"
+build-frontend = "build"

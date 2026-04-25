@@ -50,13 +50,25 @@ package manifests (`Cargo.toml`, `package.json`, `setup.py`, `pyproject.toml`,
 To regenerate them, run:
 
 ```bash
-tree-sitter generate
+make generate-bindings
 ```
 
-This reads `grammar.js` and `tree-sitter.json` and rewrites all of the
-files above. CI re-runs `tree-sitter generate` on every PR and fails if
-any tracked file would change, so do not hand-edit generated files —
-update `grammar.js` / `tree-sitter.json` and regenerate instead.
+This invokes `tree-sitter generate` (which reads `grammar.js` and
+`tree-sitter.json` and rewrites all of the files above) and then
+`utils/apply_pyproject_extras.py` to re-attach hand-maintained sections.
+
+The generator's `pyproject.toml` template doesn't include a few sections
+this project relies on (currently `[tool.cibuildwheel]`). Those live in
+`pyproject.extra.toml` and are appended to `pyproject.toml` between
+marker comments by the merge script. The script is idempotent — running
+it repeatedly produces a stable file — so editing `pyproject.extra.toml`
+and running `make generate-bindings` (or `python utils/apply_pyproject_extras.py`
+directly) is the only supported way to update those sections.
+
+CI runs `make generate-bindings` on every PR and fails if any tracked
+file would change, so do not hand-edit generated files — update
+`grammar.js`, `tree-sitter.json`, or `pyproject.extra.toml` and
+regenerate instead.
 
 Because these files are generated, they are excluded from Python
 linting/formatting (see `ruff.toml`); only hand-written Python under
