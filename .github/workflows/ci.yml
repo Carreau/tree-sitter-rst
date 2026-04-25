@@ -71,7 +71,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@v2
+        uses: tree-sitter/setup-action/cli@eeb902ac2f1be576edc296309872cf476a209b7f # v2
       - name: Regenerate bindings
         run: make generate-bindings
       - name: Check for drift
