@@ -41,36 +41,27 @@ they are needed for the grammar to be compiled easily on the user's computer,
 so they are committed in the repository.
 
 The full list of generated paths is in `.gitattributes` (entries marked
-`linguist-generated`). They include `src/parser.c`, `src/grammar.json`,
-`src/node-types.json`, the `bindings/` scaffolding for every supported
-language (C, Rust, Node, Python, Go, Swift, Zig), and the per-language
-package manifests (`Cargo.toml`, `package.json`, `setup.py`, `pyproject.toml`,
-`go.mod`, `Package.swift`, `binding.gyp`, `CMakeLists.txt`, `Makefile`).
+`linguist-generated`). They fall into two groups:
 
-To regenerate them, run:
+- **Parser sources** — `src/parser.c`, `src/node-types.json`, and the
+  headers under `src/tree_sitter/`. These are produced from `grammar.js`
+  by `tree-sitter generate`. Run `make generate-bindings` (or
+  `tree-sitter generate` directly) to refresh them. CI runs this on every
+  PR and fails if any of these files would change, so do not hand-edit
+  them — update `grammar.js` and regenerate instead.
+- **Binding scaffolding** — `Makefile`, `CMakeLists.txt`, `setup.py`,
+  `pyproject.toml`, `package.json`, `Cargo.toml`, `Package.swift`,
+  `bindings/**`, etc. These were originally scaffolded by `tree-sitter
+  init` but have since accumulated hand customizations (lint targets,
+  install rules, the `BdistWheel` class in `setup.py`, the
+  `[tool.cibuildwheel]` and `[tool.ruff]` blocks in `pyproject.toml`,
+  …). `tree-sitter generate` does **not** touch them. Refreshing them
+  via `tree-sitter init --update` is a destructive manual operation that
+  will overwrite those customizations and must be merged carefully.
 
-```bash
-make generate-bindings
-```
-
-This invokes `tree-sitter generate` (which reads `grammar.js` and
-`tree-sitter.json` and rewrites all of the files above) and then
-appends `pyproject.extra.toml` to `pyproject.toml`.
-
-The generator's `pyproject.toml` template doesn't include a few sections
-this project relies on (currently `[tool.cibuildwheel]`); those sections
-live in `pyproject.extra.toml` and are concatenated onto the freshly
-generated file. The committed `pyproject.toml` is exactly that
-concatenation, so on a clean tree `make generate-bindings` is a no-op.
-
-CI runs `make generate-bindings` on every PR and fails if any tracked
-file would change, so do not hand-edit generated files — update
-`grammar.js`, `tree-sitter.json`, or `pyproject.extra.toml` and
-regenerate instead.
-
-Because these files are generated, they are excluded from Python
-linting/formatting (see `ruff.toml`); only hand-written Python under
-`utils/` is checked by the `python` CI job.
+Hand-written Python (currently `utils/`) is linted and formatted with
+ruff (`make lint-python` / `make format-python`). The bindings and
+`setup.py` are excluded via the `[tool.ruff]` config in `pyproject.toml`.
 
 Some of the files that aren't auto-generated are:
 

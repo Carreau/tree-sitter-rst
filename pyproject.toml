@@ -25,18 +25,9 @@ Funding = "https://github.com/sponsors/stsewd"
 [project.optional-dependencies]
 core = ["tree-sitter~=0.25"]
 
-# Appended verbatim to pyproject.toml after `tree-sitter generate` rewrites
-# the file from its template (see `make generate-bindings`). Sections that
-# the generator does not produce live here.
-
 [tool.cibuildwheel]
 build = "cp310-*"
 build-frontend = "build"
-
-# Ruff configuration. The Python bindings under `bindings/python/`, `setup.py`,
-# and `pyproject.toml` are scaffolded by `tree-sitter generate` and must stay
-# byte-identical to the generator's output, so they are excluded below.
-# Hand-written Python (currently `utils/`) is linted and formatted normally.
 
 [tool.ruff]
 target-version = "py310"
