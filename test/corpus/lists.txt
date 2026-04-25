@@ -246,3 +246,88 @@ Long enumerated list paragraphs (#14)
   (enumerated_list
     (list_item
       (body (paragraph)))))
+
+========================================
+Bullet list with blank lines (#29)
+========================================
+
+- First
+
+- Second
+
+- Third
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body (paragraph))))
+  (bullet_list
+    (list_item
+      (body (paragraph))))
+  (bullet_list
+    (list_item
+      (body (paragraph)))))
+
+======================================
+Enumerated list with blank lines (#29)
+======================================
+
+1. First
+
+2. Second
+
+---
+
+(document
+  (enumerated_list
+    (list_item
+      (body (paragraph))))
+  (enumerated_list
+    (list_item
+      (body (paragraph)))))
+
+======================================
+Definition list with blank lines (#29)
+======================================
+
+Term one
+  Def one
+
+Term two
+  Def two
+
+---
+
+(document
+  (definition_list
+    (list_item
+      (term)
+      (definition
+        (paragraph))))
+  (definition_list
+    (list_item
+      (term)
+      (definition
+        (paragraph)))))
+
+==================================
+Field list with blank lines (#29)
+==================================
+
+:Name: John
+
+:Age: 30
+
+---
+
+(document
+  (field_list
+    (field
+      (field_name)
+      (field_body (paragraph))))
+  (field_list
+    (field
+      (field_name)
+      (field_body (paragraph)))))
