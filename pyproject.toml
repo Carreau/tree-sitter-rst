@@ -28,3 +28,28 @@ core = ["tree-sitter~=0.25"]
 [tool.cibuildwheel]
 build = "cp310-*"
 build-frontend = "build"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+extend-exclude = ["src", "docs", "node_modules", "build", "dist"]
+
+[tool.ruff.lint]
+select = [
+  "E",    # pycodestyle errors
+  "W",    # pycodestyle warnings
+  "F",    # pyflakes
+  "I",    # isort
+  "UP",   # pyupgrade
+  "B",    # flake8-bugbear
+  "C4",   # flake8-comprehensions
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Stub files often declare placeholder imports for typing constructs
+# that are only referenced in commented-out lines.
+"*.pyi" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
