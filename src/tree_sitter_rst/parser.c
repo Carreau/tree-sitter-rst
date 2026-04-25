@@ -1555,7 +1555,9 @@ static bool parse_role_name(RSTScanner* scanner)
 
 /// Parse normal text.
 ///
-/// Text nodes are separated by white spaces or a start char like `(`
+/// Text nodes are separated by white spaces or a start char like `(`.
+/// When T_BACKSLASH_ESCAPE is valid a backslash is yielded to
+/// parse_backslash_escape instead of being consumed as a start-char text.
 static bool parse_text(RSTScanner* scanner, bool mark_end)
 {
   TSLexer* lexer = scanner->lexer;
@@ -1565,9 +1567,15 @@ static bool parse_text(RSTScanner* scanner, bool mark_end)
   }
 
   if (is_start_char(scanner->lookahead)) {
+    if (scanner->lookahead == '\\' && valid_symbols[T_BACKSLASH_ESCAPE]) {
+      return false;
+    }
     scanner->advance(scanner);
   } else {
     while (!is_space(scanner->lookahead)) {
+      if (scanner->lookahead == '\\' && valid_symbols[T_BACKSLASH_ESCAPE]) {
+        break;
+      }
       if (is_start_char(scanner->lookahead)) {
         break;
       }
@@ -1579,5 +1587,33 @@ static bool parse_text(RSTScanner* scanner, bool mark_end)
     lexer->mark_end(lexer);
   }
   lexer->result_symbol = T_TEXT;
+  return true;
+}
+
+/// Parse a backslash escape sequence (`\x`).
+///
+/// Consumes the backslash and the following character as a single token so
+/// that consumers can easily identify and drop the sequence.  When the
+/// backslash appears at the very end of a line or file there is nothing to
+/// escape, so we fall back to emitting a plain T_TEXT for the lone `\`.
+static bool parse_backslash_escape(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  const bool* valid_symbols = scanner->valid_symbols;
+  // Consume the backslash.
+  scanner->advance(scanner);
+  // Nothing to escape: fall back to plain text.
+  if (scanner->lookahead == CHAR_EOF || is_newline(scanner->lookahead)) {
+    if (!valid_symbols[T_TEXT]) {
+      return false;
+    }
+    lexer->mark_end(lexer);
+    lexer->result_symbol = T_TEXT;
+    return true;
+  }
+  // Consume the escaped character; the token spans both chars.
+  scanner->advance(scanner);
+  lexer->mark_end(lexer);
+  lexer->result_symbol = T_BACKSLASH_ESCAPE;
   return true;
 }

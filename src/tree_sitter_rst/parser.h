@@ -58,5 +58,6 @@ static bool parse_role(RSTScanner* scanner);
 static bool parse_role_name(RSTScanner* scanner);
 static bool parse_inner_role(RSTScanner* scanner);
 static bool parse_text(RSTScanner* scanner, bool mark_end);
+static bool parse_backslash_escape(RSTScanner* scanner);
 
 #endif /* TREE_SITTER_RST_PARSER_H_ */

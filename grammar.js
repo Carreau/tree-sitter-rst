@@ -64,6 +64,7 @@ module.exports = grammar({
     $.citation_reference,
     $.reference,
     $.standalone_hyperlink,
+    $.backslash_escape,
 
     // Markup blocks
     $._explicit_markup_start,
@@ -664,6 +665,7 @@ module.exports = grammar({
       $.citation_reference,
       $.reference,
       $.standalone_hyperlink,
+      $.backslash_escape,
     ),
 
     // Interpreted text
