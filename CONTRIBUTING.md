@@ -55,15 +55,13 @@ make generate-bindings
 
 This invokes `tree-sitter generate` (which reads `grammar.js` and
 `tree-sitter.json` and rewrites all of the files above) and then
-`utils/apply_pyproject_extras.py` to re-attach hand-maintained sections.
+appends `pyproject.extra.toml` to `pyproject.toml`.
 
 The generator's `pyproject.toml` template doesn't include a few sections
-this project relies on (currently `[tool.cibuildwheel]`). Those live in
-`pyproject.extra.toml` and are appended to `pyproject.toml` between
-marker comments by the merge script. The script is idempotent — running
-it repeatedly produces a stable file — so editing `pyproject.extra.toml`
-and running `make generate-bindings` (or `python utils/apply_pyproject_extras.py`
-directly) is the only supported way to update those sections.
+this project relies on (currently `[tool.cibuildwheel]`); those sections
+live in `pyproject.extra.toml` and are concatenated onto the freshly
+generated file. The committed `pyproject.toml` is exactly that
+concatenation, so on a clean tree `make generate-bindings` is a no-op.
 
 CI runs `make generate-bindings` on every PR and fails if any tracked
 file would change, so do not hand-edit generated files — update

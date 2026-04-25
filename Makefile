@@ -176,11 +176,13 @@ lint-python-check:
 gen-punctuation-chars:
 	./utils/gen_punctuation_chars.py > ./src/tree_sitter_rst/punctuation_chars.h
 
-# Regenerate parser + binding scaffolding, then re-apply hand-maintained
-# sections (e.g. [tool.cibuildwheel] in pyproject.toml) that the generator
-# would otherwise drop. See utils/apply_pyproject_extras.py.
+# Regenerate parser + binding scaffolding, then append hand-maintained
+# pyproject.toml sections (currently [tool.cibuildwheel]) that the
+# generator's template does not produce. Running `make generate-bindings`
+# on a clean tree should leave pyproject.toml byte-identical to the
+# committed file; the `generate` CI job enforces this.
 generate-bindings:
 	$(TS) generate
-	./utils/apply_pyproject_extras.py
+	cat pyproject.extra.toml >> pyproject.toml
 
 .PHONY: all install uninstall clean test release update-examples parse-examples serve format lint lint-format lint-tidy lint-cppcheck format-python lint-python lint-python-format lint-python-check generate-bindings
