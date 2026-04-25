@@ -27,6 +27,7 @@ package-lock.json linguist-generated
 
 # Python bindings
 bindings/python/** linguist-generated
+bindings/python/tests/** -linguist-generated
 setup.py linguist-generated
 pyproject.toml linguist-generated
 
