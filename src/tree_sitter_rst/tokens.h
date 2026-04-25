@@ -63,6 +63,8 @@ enum TokenType {
   T_EMPTY_COMMENT,
 
   T_INVALID_TOKEN,
+
+  T_CLASSIFIER_INDENT_CHECK,
 };
 
 #endif /* TREE_SITTER_RST_TOKENS_H_ */
