@@ -140,6 +140,99 @@ Some text:
     (list_item
       (body (paragraph (interpreted_text))))))
 
+===================================
+Multiline bullet list with long text
+===================================
+
+- This is a very long bullet point that wraps around to multiple lines
+  when the content exceeds the typical line width
+- This is another long bullet point that also wraps
+  to multiple lines in the rendered output
+- And a third one for good measure that also wraps
+  around the screen quite nicely
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))))
+
+==========================================
+Multiline bullet with inline markup
+==========================================
+
+- **Bold text that continues**
+  on the next line
+- *Italic text that also*
+  wraps to the next line
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body
+        (paragraph (strong))))
+    (list_item
+      (body
+        (paragraph (emphasis))))))
+
+===============================================
+Bullet list with text that looks like definition
+===============================================
+
+- This looks like a definition term because of this colon :
+  but it's actually a bullet list item
+- Another one: also with a colon
+  on the next line
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body
+        (paragraph)))
+    (list_item
+      (body
+        (paragraph)))))
+
+================================================
+Multiple wrapped items with various indentation
+================================================
+
+- First very long item that wraps to the next line
+  and has continuation text here
+- Second item that also has long text and wraps
+  to another line with more content
+  and potentially more continuation
+- Third short item
+- Fourth item with text that continues
+  on the next line but is shorter than others
+- Fifth and final item that wraps across
+  multiple lines with some **bold** text
+  and more content on the last line
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph (strong))))))
+
 ================================
 Bullet list in block quote
 ================================
