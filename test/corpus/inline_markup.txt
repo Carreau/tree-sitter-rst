@@ -571,10 +571,8 @@ a\ **b**\ c
 
 (document
   (paragraph
-    (strong)
-    (backslash_escape))
+    (strong))
   (paragraph
-    (backslash_escape)
     (strong))
   (paragraph
     (backslash_escape))
@@ -585,6 +583,4 @@ a\ **b**\ c
   (paragraph
     (backslash_escape))
   (paragraph
-    (backslash_escape)
-    (strong)
-    (backslash_escape)))
+    (strong)))

@@ -1596,22 +1596,37 @@ static bool parse_text(RSTScanner* scanner, bool mark_end)
 /// that consumers can easily identify and drop the sequence.  When the
 /// backslash appears at the very end of a line or file there is nothing to
 /// escape, so we fall back to emitting a plain T_TEXT for the lone `\`.
+/// Parse a backslash escape sequence.
+///
+/// For `\X` (non-space): consume `\` and `X` and emit T_BACKSLASH_ESCAPE.
+/// For `\ ` (backslash-space): consume `\` and ` ` and emit T_BACKSLASH_SPACE
+/// (an anonymous token — no named node appears in the parse tree).
+/// For `\` at EOF or end-of-line: fall back to T_TEXT.
 static bool parse_backslash_escape(RSTScanner* scanner)
 {
   TSLexer* lexer = scanner->lexer;
   const bool* valid_symbols = scanner->valid_symbols;
   // Consume the backslash.
   scanner->advance(scanner);
-  // Nothing to escape: fall back to plain text.
+
+  // `\` at EOF or end-of-line: emit the `\` as anonymous text.
   if (scanner->lookahead == CHAR_EOF || is_newline(scanner->lookahead)) {
-    if (!valid_symbols[T_TEXT]) {
-      return false;
-    }
+    if (!valid_symbols[T_TEXT]) return false;
     lexer->mark_end(lexer);
     lexer->result_symbol = T_TEXT;
     return true;
   }
-  // Consume the escaped character; the token spans both chars.
+
+  // `\ ` (backslash-space) — zero-width separator.  Consume the space too
+  // and emit as the anonymous T_BACKSLASH_SPACE so no named node appears.
+  if (is_space(scanner->lookahead)) {
+    scanner->advance(scanner);
+    lexer->mark_end(lexer);
+    lexer->result_symbol = T_BACKSLASH_SPACE;
+    return true;
+  }
+
+  // `\X` for any other character: consume X and emit T_BACKSLASH_ESCAPE.
   scanner->advance(scanner);
   lexer->mark_end(lexer);
   lexer->result_symbol = T_BACKSLASH_ESCAPE;

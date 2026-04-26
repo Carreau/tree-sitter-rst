@@ -1475,6 +1475,10 @@
         {
           "type": "SYMBOL",
           "name": "backslash_escape"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_backslash_space"
         }
       ]
     },
@@ -1730,6 +1734,10 @@
     {
       "type": "SYMBOL",
       "name": "backslash_escape"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_backslash_space"
     },
     {
       "type": "SYMBOL",
