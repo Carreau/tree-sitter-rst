@@ -51,6 +51,8 @@ enum TokenType {
   T_CITATION_REFERENCE,
   T_REFERENCE,
   T_STANDALONE_HYPERLINK,
+  T_BACKSLASH_ESCAPE,
+  T_BACKSLASH_SPACE, // anonymous: backslash + space zero-width separator
 
   // Markup blocks
   T_EXPLICIT_MARKUP_START,

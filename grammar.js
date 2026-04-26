@@ -64,6 +64,8 @@ module.exports = grammar({
     $.citation_reference,
     $.reference,
     $.standalone_hyperlink,
+    $.backslash_escape,
+    $._backslash_space,    // anonymous: backslash + space zero-width separator
 
     // Markup blocks
     $._explicit_markup_start,
@@ -664,6 +666,8 @@ module.exports = grammar({
       $.citation_reference,
       $.reference,
       $.standalone_hyperlink,
+      $.backslash_escape,
+      $._backslash_space,
     ),
 
     // Interpreted text

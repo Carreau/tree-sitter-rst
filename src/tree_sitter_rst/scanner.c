@@ -158,6 +158,13 @@ static bool rst_scanner_scan(RSTScanner* scanner)
     return false;
   }
 
+  // Backslash escape must be checked before adornment chars because `\` is
+  // classified as an adornment character.  When T_BACKSLASH_ESCAPE or
+  // T_BACKSLASH_SPACE is valid we are in inline-markup context.
+  if (current == '\\' && (valid_symbols[T_BACKSLASH_ESCAPE] || valid_symbols[T_BACKSLASH_SPACE])) {
+    return parse_backslash_escape(scanner);
+  }
+
   if (is_adornment_char(current)
       && (valid_symbols[T_OVERLINE] || valid_symbols[T_TRANSITION])) {
     return parse_overline(scanner);

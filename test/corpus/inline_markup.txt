@@ -38,7 +38,8 @@ Test (27:00 minute video) *review* test
     (emphasis)
     (emphasis))
   (paragraph
-    (emphasis))
+    (emphasis)
+    (backslash_escape))
   (paragraph
     (emphasis))
   (paragraph
@@ -211,7 +212,9 @@ Edge cases:
   (paragraph)
   (field_list
     (field
-      (field_name (interpreted_text))
+      (field_name
+        (backslash_escape)
+        (interpreted_text))
       (field_body (paragraph)))))
 
 =======================================================
@@ -334,7 +337,8 @@ I'm in (|parenthesis|)
  (paragraph
   (substitution_reference))
  (paragraph
-  (substitution_reference))
+  (substitution_reference)
+  (backslash_escape))
  (paragraph
   (substitution_reference))
  (paragraph
@@ -375,7 +379,8 @@ I'm in (_`parenthesis`)
   (paragraph
     (inline_target))
   (paragraph
-    (inline_target))
+    (inline_target)
+    (backslash_escape))
   (paragraph
     (inline_target))
   (paragraph
@@ -405,7 +410,8 @@ I'm a [1]_
   (paragraph
     (footnote_reference))
   (paragraph
-    (footnote_reference)))
+    (footnote_reference)
+    (backslash_escape)))
 
 ===================
 Citation references
@@ -432,7 +438,8 @@ Not [a--citation] citation.
   (paragraph
     (citation_reference))
   (paragraph
-    (citation_reference))
+    (citation_reference)
+    (backslash_escape))
   (paragraph))
 
 ====================
@@ -467,7 +474,8 @@ lonely__
     (reference)
     (reference))
   (paragraph
-    (reference))
+    (reference)
+    (backslash_escape))
   (paragraph
     (reference)
     (reference))
@@ -505,7 +513,12 @@ This isn't a standalone_hyperlink "http:"
   (paragraph (standalone_hyperlink))
   (paragraph (standalone_hyperlink))
   (paragraph (standalone_hyperlink))
-  (paragraph (standalone_hyperlink))
+  (paragraph
+    (standalone_hyperlink)
+    (backslash_escape)
+    (backslash_escape)
+    (backslash_escape)
+    (backslash_escape))
   (paragraph
    (standalone_hyperlink)
    (standalone_hyperlink)
@@ -535,3 +548,39 @@ Chinese double quote: I'm in “*double quotes*”
     (emphasis))
   (paragraph
     (emphasis)))
+
+==================
+Backslash escapes
+==================
+
+**bold**\ word
+
+word\ **bold**
+
+\*not emphasis
+
+\\double backslash
+
+I'm in the mid\*dle.
+
+\`not interpreted text
+
+a\ **b**\ c
+
+---
+
+(document
+  (paragraph
+    (strong))
+  (paragraph
+    (strong))
+  (paragraph
+    (backslash_escape))
+  (paragraph
+    (backslash_escape))
+  (paragraph
+    (backslash_escape))
+  (paragraph
+    (backslash_escape))
+  (paragraph
+    (strong)))

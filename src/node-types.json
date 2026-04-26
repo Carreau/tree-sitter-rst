@@ -4,6 +4,10 @@
     "named": true,
     "subtypes": [
       {
+        "type": "backslash_escape",
+        "named": true
+      },
+      {
         "type": "citation_reference",
         "named": true
       },
@@ -790,6 +794,10 @@
   {
     "type": "adornment",
     "named": false
+  },
+  {
+    "type": "backslash_escape",
+    "named": true
   },
   {
     "type": "bullet",
