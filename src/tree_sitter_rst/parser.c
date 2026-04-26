@@ -1611,7 +1611,8 @@ static bool parse_backslash_escape(RSTScanner* scanner)
 
   // `\` at EOF or end-of-line: emit the `\` as anonymous text.
   if (scanner->lookahead == CHAR_EOF || is_newline(scanner->lookahead)) {
-    if (!valid_symbols[T_TEXT]) return false;
+    if (!valid_symbols[T_TEXT])
+      return false;
     lexer->mark_end(lexer);
     lexer->result_symbol = T_TEXT;
     return true;
