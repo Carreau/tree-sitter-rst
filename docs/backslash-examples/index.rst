@@ -3,8 +3,17 @@ Backslash escape examples
 ===========================
 
 This page shows how docutils / Sphinx renders each backslash escape
-construct so you can compare it with what tree-sitter now exposes as a
-named ``backslash_escape`` node.
+construct so you can compare it with what tree-sitter exposes.
+
+tree-sitter distinguishes two cases:
+
+- ``\X`` (backslash + non-space character) — emits a named
+  ``backslash_escape`` node spanning **both** characters so consumers can
+  identify and process the escape.
+- ``\ `` (backslash + space, the zero-width separator) — emits an
+  **anonymous** token that produces **no named node** in the parse tree,
+  matching docutils semantics where the construct contributes nothing to
+  the rendered output.
 
 .. contents:: Examples
    :local:
@@ -38,13 +47,17 @@ word\ **bold**
 
 a\ **b**\ c
 
-.. rubric:: tree-sitter parse (with ``backslash_escape`` node)
+.. rubric:: tree-sitter parse
 
 .. code-block:: text
 
-   (paragraph (strong) (backslash_escape))
-   (paragraph (backslash_escape) (strong))
-   (paragraph (backslash_escape) (strong) (backslash_escape))
+   (paragraph (strong))
+   (paragraph (strong))
+   (paragraph (strong))
+
+Because ``\ `` is the zero-width separator, it emits an anonymous token
+with no named node.  Only the ``(strong)`` node is named; the surrounding
+text (``word`` / ``a`` / ``c``) is also anonymous.
 
 ----
 
@@ -74,8 +87,8 @@ I'm in the *mid*\dle.
 
    (paragraph (emphasis) (backslash_escape))
 
-The ``backslash_escape`` node spans ``\d`` (backslash + the letter ``d``);
-the trailing ``le.`` is anonymous text.
+The ``backslash_escape`` node spans ``\d`` (backslash + the letter ``d``,
+two characters); the trailing ``le.`` is anonymous text.
 
 ----
 
@@ -135,7 +148,11 @@ I'm *mid*\ **dle**
 .. code-block:: text
 
    (paragraph (backslash_escape))
-   (paragraph (emphasis) (backslash_escape) (strong))
+   (paragraph (emphasis) (strong))
+
+The first example's ``\``` produces a named ``backslash_escape``.
+In the second example, ``\ `` (backslash + space between ``*mid*`` and
+``**dle**``) is the zero-width separator and produces **no named node**.
 
 ----
 
