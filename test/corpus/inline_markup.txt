@@ -535,3 +535,26 @@ Chinese double quote: I'm in “*double quotes*”
     (emphasis))
   (paragraph
     (emphasis)))
+
+==========================================
+Backslash-escaped inline markup start char
+==========================================
+
+A \`backtick\` here.
+
+A \`foo with `bar` later.
+
+Use \`x\` and `real` here.
+
+\*not emphasis\* but `real`.
+
+---
+
+(document
+  (paragraph)
+  (paragraph
+    (interpreted_text))
+  (paragraph
+    (interpreted_text))
+  (paragraph
+    (interpreted_text)))
