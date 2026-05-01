@@ -558,3 +558,23 @@ Use \`x\` and `real` here.
     (interpreted_text))
   (paragraph
     (interpreted_text)))
+
+=========================
+Backslash-space separator
+=========================
+
+**bold**\ word
+
+word\ **bold**
+
+a\ **b**\ c
+
+---
+
+(document
+  (paragraph
+    (strong))
+  (paragraph
+    (strong))
+  (paragraph
+    (strong)))
