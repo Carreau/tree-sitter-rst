@@ -234,7 +234,13 @@ module.exports = grammar({
 
     */
     bullet_list: $ => repeat1(
-      alias($._bullet_list_item, $.list_item),
+      choice(
+        seq(
+          alias($._bullet_list_item, $.list_item),
+          $._blankline,
+        ),
+        alias($._bullet_list_item, $.list_item),
+      ),
     ),
 
     _bullet_list_item: $ => seq(
@@ -254,7 +260,13 @@ module.exports = grammar({
 
     */
     enumerated_list: $ => repeat1(
-      alias($._numeric_list_item, $.list_item),
+      choice(
+        seq(
+          alias($._numeric_list_item, $.list_item),
+          $._blankline,
+        ),
+        alias($._numeric_list_item, $.list_item),
+      ),
     ),
 
     _numeric_list_item: $ => seq(
@@ -283,7 +295,13 @@ module.exports = grammar({
 
     */
     definition_list: $ => repeat1(
-      alias($._definition_list_item, $.list_item),
+      choice(
+        seq(
+          alias($._definition_list_item, $.list_item),
+          $._blankline,
+        ),
+        alias($._definition_list_item, $.list_item),
+      ),
     ),
 
     _definition_list_item: $ => seq(
@@ -317,7 +335,15 @@ module.exports = grammar({
     :Indentation: Since the field marker may be quite long, the second
       and subsequent lines of the field body do not have to line up.
     */
-    field_list: $ => repeat1($.field),
+    field_list: $ => repeat1(
+      choice(
+        seq(
+          $.field,
+          $._blankline,
+        ),
+        $.field,
+      ),
+    ),
 
     field: $ => seq(
       alias($._field_mark, ':'),
