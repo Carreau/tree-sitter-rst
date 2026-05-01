@@ -36,6 +36,10 @@ enum TokenType {
   // Doctest blocks
   T_DOCTEST_BLOCK_MARK,
 
+  // Tables (flat nodes, scanner gobbles the whole table block)
+  T_GRID_TABLE,
+  T_SIMPLE_TABLE,
+
   // Inline markup
   T_TEXT,
   T_EMPHASIS,

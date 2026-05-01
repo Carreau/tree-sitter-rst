@@ -150,6 +150,10 @@
           "named": true
         },
         {
+          "type": "grid_table",
+          "named": true
+        },
+        {
           "type": "line_block",
           "named": true
         },
@@ -159,6 +163,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "simple_table",
           "named": true
         }
       ]
@@ -197,6 +205,10 @@
           "named": true
         },
         {
+          "type": "grid_table",
+          "named": true
+        },
+        {
           "type": "line_block",
           "named": true
         },
@@ -210,6 +222,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "simple_table",
           "named": true
         }
       ]
@@ -306,6 +322,10 @@
           "named": true
         },
         {
+          "type": "grid_table",
+          "named": true
+        },
+        {
           "type": "line_block",
           "named": true
         },
@@ -315,6 +335,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "simple_table",
           "named": true
         }
       ]
@@ -392,6 +416,10 @@
           "named": true
         },
         {
+          "type": "grid_table",
+          "named": true
+        },
+        {
           "type": "line_block",
           "named": true
         },
@@ -405,6 +433,10 @@
         },
         {
           "type": "section",
+          "named": true
+        },
+        {
+          "type": "simple_table",
           "named": true
         },
         {
@@ -473,6 +505,10 @@
           "named": true
         },
         {
+          "type": "grid_table",
+          "named": true
+        },
+        {
           "type": "line_block",
           "named": true
         },
@@ -482,6 +518,10 @@
         },
         {
           "type": "paragraph",
+          "named": true
+        },
+        {
+          "type": "simple_table",
           "named": true
         }
       ]
@@ -542,6 +582,11 @@
         ]
       }
     }
+  },
+  {
+    "type": "grid_table",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "interpreted_text",
@@ -668,6 +713,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "simple_table",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "substitution_definition",

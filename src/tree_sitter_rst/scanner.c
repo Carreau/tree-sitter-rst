@@ -5,6 +5,7 @@
 
 #include "chars.c"
 #include "parser.c"
+#include "table.c"
 #include "tokens.h"
 
 /// Build a new `RSTScanner` object.
@@ -161,6 +162,20 @@ static bool rst_scanner_scan(RSTScanner* scanner)
   if (is_adornment_char(current)
       && (valid_symbols[T_OVERLINE] || valid_symbols[T_TRANSITION])) {
     return parse_overline(scanner);
+  }
+
+  // Body-context table intercept. parse_overline runs only when section
+  // adornments are valid (top level); inside lists, directives, etc. it
+  // doesn't fire and a table border line would otherwise be eaten as a
+  // bullet, char_bullet fallback, or text. This branch handles those
+  // cases. We commit to the dispatch — once we advance past the leading
+  // '+' or '=', the rest of the scanner cannot run, so the dispatcher
+  // is responsible for picking the right token (table, char_bullet, or
+  // text).
+  if (((current == '+' && valid_symbols[T_GRID_TABLE])
+          || (current == '=' && valid_symbols[T_SIMPLE_TABLE]))
+      && !valid_symbols[T_OVERLINE] && !valid_symbols[T_TRANSITION]) {
+    return parse_table_dispatch(scanner);
   }
 
   if (is_adornment_char(current)

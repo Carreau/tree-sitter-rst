@@ -49,6 +49,10 @@ module.exports = grammar({
     // Doctest blocks
     $._doctest_block_mark,
 
+    // Tables (single token spanning the whole table block)
+    $._grid_table,
+    $._simple_table,
+
     // Inline markup
     $._text,
     $.emphasis,
@@ -193,6 +197,8 @@ module.exports = grammar({
       $.line_block,
       $._block_quote_block,
       $.doctest_block,
+      $.grid_table,
+      $.simple_table,
     ),
 
     // Paragraph
@@ -468,6 +474,38 @@ module.exports = grammar({
       $._text_block,
       $._blankline,
     ),
+
+    // Tables
+    // ======
+
+    /*
+
+    Example (grid table):
+
+    +-----+-----+
+    | A   | B   |
+    +=====+=====+
+    | 1   | 2   |
+    +-----+-----+
+
+    Example (simple table):
+
+    =====  =====
+      A      B
+    =====  =====
+      1      2
+    =====  =====
+
+    Tables are exposed as flat nodes — the scanner consumes the whole
+    block (top border through bottom border) as one token, and
+    individual rows/cells are not modelled. The two flavours are
+    distinguished as separate node names (``grid_table`` and
+    ``simple_table``) so highlighters and editors can target each
+    independently. Richer cell structure can be added later as a
+    sub-grammar without renaming these nodes.
+    */
+    grid_table: $ => $._grid_table,
+    simple_table: $ => $._simple_table,
 
     // Markup blocks
     // =============

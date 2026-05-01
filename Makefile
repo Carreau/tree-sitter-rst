@@ -113,9 +113,6 @@ update-examples:
 parse-examples:
 	npm run parse -- -q test/examples/*.rst
 
-	# Tables aren't supported yet
-	! npm run parse -- -q test/examples/fail/*.rst
-
 serve: all
 	npm run prestart
 	npm run start
@@ -130,7 +127,7 @@ format:
 # clang-tidy uses --line-filter so only hand-written files are reported;
 # generated parser.c files are compiled for analysis but their diagnostics
 # are suppressed.
-CLANG_TIDY_LINE_FILTER := [{"name":"src/scanner.c"},{"name":"tree_sitter_rst/scanner.c"},{"name":"tree_sitter_rst/chars.c"}]
+CLANG_TIDY_LINE_FILTER := [{"name":"src/scanner.c"},{"name":"tree_sitter_rst/scanner.c"},{"name":"tree_sitter_rst/chars.c"},{"name":"tree_sitter_rst/table.c"}]
 
 lint: lint-format lint-tidy lint-cppcheck
 
