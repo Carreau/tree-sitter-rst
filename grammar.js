@@ -242,6 +242,11 @@ module.exports = grammar({
     - One
     - Two
 
+    Note: a `_blankline` is allowed *between* list items, so a single
+    bullet_list can span items separated by a blank line. A blank line
+    followed by a non-list construct, or a different bullet character,
+    will still terminate the list (producing separate list nodes in the
+    tree).
     */
     bullet_list: $ => repeat1(
       choice(
