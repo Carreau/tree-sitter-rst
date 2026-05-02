@@ -1197,9 +1197,23 @@ After the table.
 
 (document
   (paragraph)
-  (grid_table)
+  (grid_table
+    (border)
+    (row
+      (row_line))
+    (header_sep)
+    (row
+      (row_line))
+    (border))
   (paragraph)
-  (grid_table))
+  (grid_table
+    (border)
+    (row
+      (row_line)
+      (row_line)
+      (row_line)
+      (row_line))
+    (border)))
 
 ================================================================================
 Simple tables
@@ -1217,7 +1231,64 @@ True   False  True
 --------------------------------------------------------------------------------
 
 (document
-  (simple_table))
+  (simple_table
+    (border)
+    (row)
+    (dashes)
+    (row)
+    (border)
+    (row)
+    (row)
+    (border)))
+
+================================================================================
+Grid tables without header
+================================================================================
+
++-----+-----+
+| A   | B   |
++-----+-----+
+| 1   | 2   |
++-----+-----+
+| 3   | 4   |
++-----+-----+
+
+--------------------------------------------------------------------------------
+
+(document
+  (grid_table
+    (border)
+    (row
+      (row_line))
+    (border)
+    (row
+      (row_line))
+    (border)
+    (row
+      (row_line))
+    (border)))
+
+================================================================================
+Simple tables without colspan
+================================================================================
+
+=====  =====
+  A      B
+=====  =====
+False  False
+True   False
+=====  =====
+
+--------------------------------------------------------------------------------
+
+(document
+  (simple_table
+    (border)
+    (row)
+    (border)
+    (row)
+    (row)
+    (border)))
 
 ================================================================================
 Tables inside list items
@@ -1240,7 +1311,14 @@ Tables inside list items
     (list_item
       (body
         (paragraph)
-        (grid_table))))
+        (grid_table
+          (border)
+          (row
+            (row_line))
+          (border)
+          (row
+            (row_line))
+          (border)))))
   (bullet_list
     (list_item
       (body

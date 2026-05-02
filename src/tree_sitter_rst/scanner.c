@@ -164,16 +164,29 @@ static bool rst_scanner_scan(RSTScanner* scanner)
     return parse_overline(scanner);
   }
 
-  // Body-context table intercept. parse_overline runs only when section
-  // adornments are valid (top level); inside lists, directives, etc. it
-  // doesn't fire and a table border line would otherwise be eaten as a
-  // bullet, char_bullet fallback, or text. This branch handles those
-  // cases. We commit to the dispatch — once we advance past the leading
-  // '+' or '=', the rest of the scanner cannot run, so the dispatcher
-  // is responsible for picking the right token (table, char_bullet, or
-  // text).
-  if (((current == '+' && valid_symbols[T_GRID_TABLE])
-          || (current == '=' && valid_symbols[T_SIMPLE_TABLE]))
+  // Inside-table fast path: when the grammar is already in a table
+  // body (a per-line row token is valid), every non-whitespace line
+  // has to be classified as a table line. parse_table_dispatch
+  // returns false without advancing on whitespace / newline lookahead
+  // so we fall through to the rest of the scanner (in particular
+  // parse_indent for T_BLANKLINE and T_NEWLINE).
+  if ((valid_symbols[T_GRID_TABLE_ROW_LINE]
+          || valid_symbols[T_SIMPLE_TABLE_ROW_LINE])
+      && !is_space(current)) {
+    if (parse_table_dispatch(scanner)) {
+      return true;
+    }
+  }
+
+  // Body-context table intercept (first border). parse_overline runs
+  // only when section adornments are valid (top level); inside lists,
+  // directives, etc. it doesn't fire and a table border line would
+  // otherwise be eaten as a bullet, char_bullet fallback, or text.
+  // Once we advance past the leading '+' or '=', the rest of the
+  // scanner cannot run, so the dispatcher is responsible for picking
+  // the right token (table line, char_bullet, or text).
+  if (((current == '+' && valid_symbols[T_GRID_TABLE_SEPARATOR])
+          || (current == '=' && valid_symbols[T_SIMPLE_TABLE_BORDER]))
       && !valid_symbols[T_OVERLINE] && !valid_symbols[T_TRANSITION]) {
     return parse_table_dispatch(scanner);
   }

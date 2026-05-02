@@ -49,9 +49,13 @@ module.exports = grammar({
     // Doctest blocks
     $._doctest_block_mark,
 
-    // Tables (single token spanning the whole table block)
-    $._grid_table,
-    $._simple_table,
+    // Tables — per-line tokens, composed in JS into rows and borders.
+    $._grid_table_separator,
+    $._grid_table_header_sep,
+    $._grid_table_row_line,
+    $._simple_table_border,
+    $._simple_table_dashes,
+    $._simple_table_row_line,
 
     // Inline markup
     $._text,
@@ -496,16 +500,39 @@ module.exports = grammar({
       1      2
     =====  =====
 
-    Tables are exposed as flat nodes — the scanner consumes the whole
-    block (top border through bottom border) as one token, and
-    individual rows/cells are not modelled. The two flavours are
-    distinguished as separate node names (``grid_table`` and
-    ``simple_table``) so highlighters and editors can target each
-    independently. Richer cell structure can be added later as a
-    sub-grammar without renaming these nodes.
+    Tables expose row structure: each line of the table is its own
+    external token (border, header separator, or row content line),
+    and the JS grammar composes them into ``grid_table`` /
+    ``simple_table`` nodes whose children are alternating ``row``s
+    and borders. Cell content within a row is *not* further parsed
+    — a row holds its raw content lines.
     */
-    grid_table: $ => $._grid_table,
-    simple_table: $ => $._simple_table,
+    grid_table: $ => seq(
+      alias($._grid_table_separator, $.border),
+      repeat1(
+        seq(
+          alias($._grid_table_row, $.row),
+          choice(
+            alias($._grid_table_separator, $.border),
+            alias($._grid_table_header_sep, $.header_sep),
+          ),
+        ),
+      ),
+    ),
+    _grid_table_row: $ => repeat1(
+      alias($._grid_table_row_line, $.row_line),
+    ),
+
+    simple_table: $ => seq(
+      alias($._simple_table_border, $.border),
+      repeat1(
+        choice(
+          alias($._simple_table_row_line, $.row),
+          alias($._simple_table_dashes, $.dashes),
+          alias($._simple_table_border, $.border),
+        ),
+      ),
+    ),
 
     // Markup blocks
     // =============

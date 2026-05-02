@@ -36,9 +36,19 @@ enum TokenType {
   // Doctest blocks
   T_DOCTEST_BLOCK_MARK,
 
-  // Tables (flat nodes, scanner gobbles the whole table block)
-  T_GRID_TABLE,
-  T_SIMPLE_TABLE,
+  // Tables — structural tokens, one per line.
+  //
+  // Grid tables emit a ``+---+...+`` border, a ``+===+...+`` header
+  // separator, or a ``|...|...|`` content line. Simple tables emit
+  // ``=== ===`` borders, ``--- ---`` column-spanning header underlines,
+  // and content lines. The grammar composes these into ``grid_table`` /
+  // ``simple_table`` nodes with row sub-structure.
+  T_GRID_TABLE_SEPARATOR,
+  T_GRID_TABLE_HEADER_SEP,
+  T_GRID_TABLE_ROW_LINE,
+  T_SIMPLE_TABLE_BORDER,
+  T_SIMPLE_TABLE_DASHES,
+  T_SIMPLE_TABLE_ROW_LINE,
 
   // Inline markup
   T_TEXT,
