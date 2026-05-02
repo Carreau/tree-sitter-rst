@@ -81,6 +81,27 @@ jobs:
             exit 1
           fi
 
+  check-wasm:
+    # Rebuild tree-sitter-rst.wasm and fail if it differs from the committed
+    # file. Keeps the playground artefact in sync with grammar.js changes.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@eeb902ac2f1be576edc296309872cf476a209b7f # v2
+      - name: Rebuild wasm
+        run: make wasm
+      - name: Check for drift
+        run: |
+          if ! git diff --exit-code tree-sitter-rst.wasm; then
+            echo "::error::tree-sitter-rst.wasm is out of date. Run 'make wasm' locally and commit the result."
+            exit 1
+          fi
+
   build:
     runs-on: ubuntu-latest
     steps:

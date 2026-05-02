@@ -184,4 +184,7 @@ gen-punctuation-chars:
 generate-bindings:
 	$(TS) generate
 
-.PHONY: all install uninstall clean test release update-examples parse-examples serve format lint lint-format lint-tidy lint-cppcheck format-python lint-python lint-python-format lint-python-check generate-bindings
+wasm:
+	$(TS) build --wasm
+
+.PHONY: all install uninstall clean test release update-examples parse-examples serve format lint lint-format lint-tidy lint-cppcheck format-python lint-python lint-python-format lint-python-check generate-bindings wasm
