@@ -158,3 +158,29 @@ Phrase reference (backticked, no URI)
     (reference [0..13]
       (name [1..11]))
     (reference [18..22])))
+
+========================================
+Embedded URI: unclosed angle bracket
+========================================
+
+`text <unclosed`_
+
+---
+
+(document [0..17]
+  (paragraph [0..17]
+    (reference [0..17]
+      (name [1..15]))))
+
+========================================
+Embedded URI: missing closing angle bracket
+========================================
+
+`Python <http://x.org`_ tail
+
+---
+
+(document [0..28]
+  (paragraph [0..28]
+    (reference [0..23]
+      (name [1..21]))))
