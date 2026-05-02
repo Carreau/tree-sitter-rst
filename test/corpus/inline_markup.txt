@@ -461,13 +461,16 @@ lonely__
   (paragraph
     (reference)
     (reference)
-    (reference)
-    (reference))
+    (reference
+      (name))
+    (reference
+      (name)))
   (paragraph
     (reference)
     (reference))
   (paragraph
-    (reference))
+    (reference
+      (name)))
   (paragraph
     (reference)
     (reference))
@@ -475,6 +478,61 @@ lonely__
     (reference))
   (paragraph
     (reference)))
+
+=======================================
+Hyperlink references with embedded URIs
+=======================================
+
+`Python <http://www.python.org>`_
+`Python <http://www.python.org>`__
+`<http://www.example.org>`__
+
+A `Python web site <http://www.python.org>`__ link.
+
+`URL with # <http://www.w3.org/XML/Schema#dev>`__
+`file with ^^ <../strange^^name>`__
+
+(`Python <http://www.python.org>`_) wrapped.
+
+`text < not uri here`_
+
+A long paragraph with `Python web site
+<http://www.python.org>`_ that wraps.
+
+---
+
+(document
+  (paragraph
+    (reference
+      (name)
+      (uri))
+    (reference
+      (name)
+      (uri))
+    (reference
+      (uri)))
+  (paragraph
+    (reference
+      (name)
+      (uri)))
+  (paragraph
+    (reference
+      (name)
+      (uri))
+    (reference
+      (name)
+      (uri)))
+  (paragraph
+    (reference
+      (name)
+      (uri)))
+  (paragraph
+    (reference
+      (name)))
+  (paragraph
+    (reference
+      (name)
+      (uri))))
 
 =====================
 Standalone hyperlinks
