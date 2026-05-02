@@ -57,7 +57,9 @@ See `link <http://example.com>`_.
 
 (document [0..33]
   (paragraph [0..33]
-    (reference [4..32])))
+    (reference [4..32]
+      (name [5..9])
+      (uri [11..29]))))
 
 ========================================
 Backslash-escaped inline markup start char
@@ -101,3 +103,58 @@ a\ **b**\ c
     (strong [22..30]))
   (paragraph [32..43]
     (strong [35..40])))
+
+========================================
+Embedded URI reference
+========================================
+
+`Python <http://www.python.org>`_
+
+---
+
+(document [0..33]
+  (paragraph [0..33]
+    (reference [0..33]
+      (name [1..7])
+      (uri [9..30]))))
+
+========================================
+Anonymous embedded URI reference
+========================================
+
+`Python <http://www.python.org>`__
+
+---
+
+(document [0..34]
+  (paragraph [0..34]
+    (reference [0..34]
+      (name [1..7])
+      (uri [9..30]))))
+
+========================================
+Empty-text anonymous embedded URI reference
+========================================
+
+`<http://example.org>`__
+
+---
+
+(document [0..24]
+  (paragraph [0..24]
+    (reference [0..24]
+      (uri [2..20]))))
+
+========================================
+Phrase reference (backticked, no URI)
+========================================
+
+`simple ref`_ and ref_ done.
+
+---
+
+(document [0..28]
+  (paragraph [0..28]
+    (reference [0..13]
+      (name [1..11]))
+    (reference [18..22])))
