@@ -12,6 +12,10 @@
         "named": true
       },
       {
+        "type": "escape_sequence",
+        "named": true
+      },
+      {
         "type": "footnote_reference",
         "named": true
       },
@@ -886,6 +890,10 @@
   },
   {
     "type": "emphasis",
+    "named": true
+  },
+  {
+    "type": "escape_sequence",
     "named": true
   },
   {

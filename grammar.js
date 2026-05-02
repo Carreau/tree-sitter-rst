@@ -55,6 +55,7 @@ module.exports = grammar({
 
     // Inline markup
     $._text,
+    $.escape_sequence,
     $.emphasis,
     $.strong,
     $._interpreted_text,
@@ -728,6 +729,7 @@ module.exports = grammar({
 
     _inline_markup: $ => choice(
       alias($._text, 'text'),
+      $.escape_sequence,
       $.emphasis,
       $.strong,
       $.interpreted_text,
