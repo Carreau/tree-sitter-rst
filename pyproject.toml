@@ -3,7 +3,7 @@ requires = ["setuptools>=70.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tree-sitter-rst"
+name = "py-tree-sitter-rst"
 description = "reStructuredText grammar for tree-sitter"
 version = "0.2.0"
 keywords = ["incremental", "parsing", "tree-sitter", "rst"]
