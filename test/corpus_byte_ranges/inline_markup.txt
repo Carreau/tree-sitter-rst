@@ -36,6 +36,67 @@ Hello `world`.
     (interpreted_text [6..13])))
 
 ========================================
+Closing backtick not preceded by whitespace closes the span
+========================================
+
+`text here is` raw something`
+
+---
+
+(document [0..29]
+  (paragraph [0..29]
+    (interpreted_text [0..14])))
+
+========================================
+Closing backtick preceded by whitespace does not close the span; later backtick closes it
+========================================
+
+`text here is `raw something`
+
+---
+
+(document [0..29]
+  (paragraph [0..29]
+    (interpreted_text [0..29])))
+
+========================================
+Both inner and outer closing backticks preceded by whitespace; last backtick closes span
+========================================
+
+`text here is ` raw something`
+
+---
+
+(document [0..30]
+  (paragraph [0..30]
+    (interpreted_text [0..30])))
+
+========================================
+Backslash-space before closing backtick prevents interpreted text (space still counts as whitespace)
+========================================
+
+`text here is\ ` and text after
+
+---
+
+(document [0..31]
+  (paragraph [0..31]
+    (escape_sequence [11..15])))
+
+========================================
+Interpreted text with escaped backtick emits escape_sequence child
+========================================
+
+`foo\`bar`
+
+---
+
+(document [0..10]
+  (paragraph [0..10]
+    (interpreted_text [0..10]
+      (escape_sequence [4..6]))))
+
+========================================
 Inline literal
 ========================================
 
