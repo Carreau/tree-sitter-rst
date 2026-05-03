@@ -1343,7 +1343,7 @@ static int scan_interpreted_text_kind(RSTScanner* scanner)
       if (indent != scanner->back(scanner) || is_newline(scanner->lookahead)) {
         return 0;
       }
-      previous = ' ';  // treat start-of-line as space-preceded so '`' there isn't a close
+      previous = ' '; // treat start-of-line as space-preceded so '`' there isn't a close
       is_escaped = false;
       continue;
     }
@@ -1356,19 +1356,20 @@ static int scan_interpreted_text_kind(RSTScanner* scanner)
     }
 
     if (scanner->lookahead == '`' && !is_space(previous) && !is_escaped) {
-      scanner->advance(scanner);  // consume the close backtick for the peek
+      scanner->advance(scanner); // consume the close backtick for the peek
       if (scanner->lookahead == '_') {
         return 2;
       }
       if (scanner->lookahead == ':') {
         // Peek: is this ':role:' (suffix role) or just ':' followed by text?
         // Advance past ':' to check the role name.
-        scanner->advance(scanner);  // advance past ':'
+        scanner->advance(scanner); // advance past ':'
         if (is_alphanumeric(scanner->lookahead)) {
           bool internal = true;
           while (is_alphanumeric(scanner->lookahead) || is_internal_reference_char(scanner->lookahead)) {
             if (is_internal_reference_char(scanner->lookahead)) {
-              if (internal) break;
+              if (internal)
+                break;
               internal = true;
             } else {
               internal = false;
@@ -1459,9 +1460,9 @@ static bool parse_interpreted_text_open(RSTScanner* scanner)
         continue;
       }
       if (scanner->lookahead == '`' && !is_space(prev)) {
-        scanner->advance(scanner);  // consume first close '`'
+        scanner->advance(scanner); // consume first close '`'
         if (scanner->lookahead == '`') {
-          scanner->advance(scanner);  // consume second close '`'
+          scanner->advance(scanner); // consume second close '`'
           // Consume any additional backticks (consistent with IM_LITERAL).
           while (scanner->lookahead == '`') {
             scanner->advance(scanner);
@@ -1550,7 +1551,7 @@ static bool parse_interpreted_text_body(RSTScanner* scanner)
   // Use lexer->lookahead (not scanner->lookahead) because scanner->lookahead
   // may be stale if the previous scan call advanced beyond its mark_end.
   int32_t first = lexer->lookahead;
-  scanner->lookahead = first;  // sync once for the body scan
+  scanner->lookahead = first; // sync once for the body scan
   // Can't start with a potentially-closing backtick.
   // Let T_INTERPRETED_TEXT_CLOSE handle backticks.
   if (first == '`' || is_newline(first) || first == CHAR_EOF) {
@@ -1559,7 +1560,7 @@ static bool parse_interpreted_text_body(RSTScanner* scanner)
 
   // Backslash: peek to decide whether to absorb (backslash-space) or defer.
   if (first == '\\') {
-    scanner->advance(scanner);  // consume '\'; previous = '\', lookahead = next
+    scanner->advance(scanner); // consume '\'; previous = '\', lookahead = next
     if (!is_newline(scanner->lookahead) && is_space(scanner->lookahead)) {
       // backslash-space: absorb into body so scanner->previous = ' ' after
       scanner->advance(scanner);
@@ -1576,10 +1577,10 @@ static bool parse_interpreted_text_body(RSTScanner* scanner)
       // stop here (escape_sequence takes over); for backslash-space we absorb
       // the pair and update the mark to include it.
       lexer->mark_end(lexer);
-      scanner->advance(scanner);  // previous = '\', lookahead = next
+      scanner->advance(scanner); // previous = '\', lookahead = next
       if (!is_newline(scanner->lookahead) && is_space(scanner->lookahead)) {
-        scanner->advance(scanner);  // absorb space; previous = ' '
-        lexer->mark_end(lexer);    // update mark to include '\ '
+        scanner->advance(scanner); // absorb space; previous = ' '
+        lexer->mark_end(lexer); // update mark to include '\ '
         continue;
       }
       // backslash-nonspace: mark is already before '\'; T_ESCAPE_SEQUENCE handles it.
@@ -1625,7 +1626,7 @@ static bool parse_interpreted_text_close(RSTScanner* scanner)
   if (lexer->lookahead != '`' || !valid_symbols[T_INTERPRETED_TEXT_CLOSE]) {
     return false;
   }
-  scanner->lookahead = lexer->lookahead;  // sync before advancing
+  scanner->lookahead = lexer->lookahead; // sync before advancing
 
   scanner->advance(scanner);
   lexer->mark_end(lexer);

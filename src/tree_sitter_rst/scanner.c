@@ -178,16 +178,15 @@ static bool rst_scanner_scan(RSTScanner* scanner)
   // valid.
   if (current == '`' && valid_symbols[T_INTERPRETED_TEXT_OPEN]) {
     bool r = parse_interpreted_text_open(scanner);
-    if (r) return true;
+    if (r)
+      return true;
   }
 
   // When a backtick could open interpreted text or a literal (``...``), the
   // inline-markup paths take priority over the adornment/overline path.
   if (is_adornment_char(current)
       && (valid_symbols[T_OVERLINE] || valid_symbols[T_TRANSITION])
-      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN]
-                               || valid_symbols[T_LITERAL]
-                               || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
+      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN] || valid_symbols[T_LITERAL] || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
     return parse_overline(scanner);
   }
 
@@ -207,16 +206,12 @@ static bool rst_scanner_scan(RSTScanner* scanner)
 
   if (is_adornment_char(current)
       && (valid_symbols[T_UNDERLINE] || valid_symbols[T_TRANSITION])
-      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN]
-                               || valid_symbols[T_LITERAL]
-                               || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
+      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN] || valid_symbols[T_LITERAL] || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
     return parse_underline(scanner);
   }
 
   if (is_adornment_char(current) && valid_symbols[T_QUOTED_LITERAL_BLOCK]
-      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN]
-                               || valid_symbols[T_LITERAL]
-                               || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
+      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN] || valid_symbols[T_LITERAL] || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
     return parse_quoted_literal_block(scanner);
   }
 
@@ -273,12 +268,14 @@ static bool rst_scanner_scan(RSTScanner* scanner)
   // Inside an interpreted-text span: close and body take full priority.
   if (valid_symbols[T_INTERPRETED_TEXT_CLOSE]) {
     bool r = parse_interpreted_text_close(scanner);
-    if (r) return true;
+    if (r)
+      return true;
   }
 
   if (valid_symbols[T_INTERPRETED_TEXT_BODY]) {
     bool r = parse_interpreted_text_body(scanner);
-    if (r) return true;
+    if (r)
+      return true;
   }
 
   // (T_INTERPRETED_TEXT_OPEN dispatch moved before overline check above)
