@@ -145,6 +145,12 @@ static bool rst_scanner_scan(RSTScanner* scanner)
 {
   TSLexer* lexer = scanner->lexer;
   const bool* valid_symbols = scanner->valid_symbols;
+  // Sync scanner->lookahead with the lexer's current position on every scan
+  // entry.  After a sub-scanner returns false the tree-sitter lexer is reset
+  // to its original position but scanner->lookahead may be stale.  The sync
+  // ensures scanner->previous is set correctly on the first advance() call
+  // inside the next sub-scanner (e.g. parse_inline_markup).
+  scanner->lookahead = lexer->lookahead;
   int32_t current = lexer->lookahead;
 
   // Zero-width guard: when the parser is poised right after a classifier
@@ -166,8 +172,22 @@ static bool rst_scanner_scan(RSTScanner* scanner)
     return false;
   }
 
+  // Interpreted-text open must be checked before the adornment/overline path
+  // because '`' is both an adornment char and the interpreted-text delimiter.
+  // Prefer the interpreted-text interpretation when T_INTERPRETED_TEXT_OPEN is
+  // valid.
+  if (current == '`' && valid_symbols[T_INTERPRETED_TEXT_OPEN]) {
+    bool r = parse_interpreted_text_open(scanner);
+    if (r) return true;
+  }
+
+  // When a backtick could open interpreted text or a literal (``...``), the
+  // inline-markup paths take priority over the adornment/overline path.
   if (is_adornment_char(current)
-      && (valid_symbols[T_OVERLINE] || valid_symbols[T_TRANSITION])) {
+      && (valid_symbols[T_OVERLINE] || valid_symbols[T_TRANSITION])
+      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN]
+                               || valid_symbols[T_LITERAL]
+                               || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
     return parse_overline(scanner);
   }
 
@@ -186,11 +206,17 @@ static bool rst_scanner_scan(RSTScanner* scanner)
   }
 
   if (is_adornment_char(current)
-      && (valid_symbols[T_UNDERLINE] || valid_symbols[T_TRANSITION])) {
+      && (valid_symbols[T_UNDERLINE] || valid_symbols[T_TRANSITION])
+      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN]
+                               || valid_symbols[T_LITERAL]
+                               || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
     return parse_underline(scanner);
   }
 
-  if (is_adornment_char(current) && valid_symbols[T_QUOTED_LITERAL_BLOCK]) {
+  if (is_adornment_char(current) && valid_symbols[T_QUOTED_LITERAL_BLOCK]
+      && !(current == '`' && (valid_symbols[T_INTERPRETED_TEXT_OPEN]
+                               || valid_symbols[T_LITERAL]
+                               || valid_symbols[T_INTERPRETED_TEXT_PREFIX]))) {
     return parse_quoted_literal_block(scanner);
   }
 
@@ -244,10 +270,23 @@ static bool rst_scanner_scan(RSTScanner* scanner)
     return parse_reference_end_mark(scanner);
   }
 
+  // Inside an interpreted-text span: close and body take full priority.
+  if (valid_symbols[T_INTERPRETED_TEXT_CLOSE]) {
+    bool r = parse_interpreted_text_close(scanner);
+    if (r) return true;
+  }
+
+  if (valid_symbols[T_INTERPRETED_TEXT_BODY]) {
+    bool r = parse_interpreted_text_body(scanner);
+    if (r) return true;
+  }
+
+  // (T_INTERPRETED_TEXT_OPEN dispatch moved before overline check above)
+
   if (is_inline_markup_start_char(current)
       && (valid_symbols[T_EMPHASIS]
           || valid_symbols[T_STRONG]
-          || valid_symbols[T_INTERPRETED_TEXT]
+
           || valid_symbols[T_INTERPRETED_TEXT_PREFIX]
           || valid_symbols[T_LITERAL]
           || valid_symbols[T_SUBSTITUTION_REFERENCE]

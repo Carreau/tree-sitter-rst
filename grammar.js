@@ -58,8 +58,10 @@ module.exports = grammar({
     $.escape_sequence,
     $.emphasis,
     $.strong,
-    $._interpreted_text,
     $._interpreted_text_prefix,
+    $._interpreted_text_open,
+    $._interpreted_text_body,
+    $._interpreted_text_close,
     $._role_name_prefix,
     $._role_name_suffix,
     $.literal,
@@ -780,13 +782,26 @@ module.exports = grammar({
       $._prefix_role,
       $._suffix_role,
     ),
-    _default_role: $ => alias($._interpreted_text, 'interpreted_text'),
+    _interpreted_text_content: $ => repeat1(choice(
+      alias($._interpreted_text_body, 'text'),
+      $.escape_sequence,
+    )),
+
+    _default_role: $ => seq(
+      $._interpreted_text_open,
+      optional($._interpreted_text_content),
+      $._interpreted_text_close,
+    ),
     _prefix_role: $ => seq(
       alias($._role_name_prefix, $.role),
-      alias($._interpreted_text, 'interpreted_text'),
+      $._interpreted_text_open,
+      optional($._interpreted_text_content),
+      $._interpreted_text_close,
     ),
     _suffix_role: $ => seq(
-      alias($._interpreted_text_prefix, 'interpreted_text'),
+      $._interpreted_text_open,
+      optional($._interpreted_text_content),
+      $._interpreted_text_close,
       alias($._role_name_suffix, $.role),
     ),
 
