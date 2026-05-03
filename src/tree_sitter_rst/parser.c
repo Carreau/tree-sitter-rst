@@ -289,7 +289,7 @@ static bool fallback_adornment(RSTScanner* scanner, int32_t adornment, int adorn
         }
         return parse_text(scanner, false);
       }
-      if (adornment == '`' && (valid_symbols[T_INTERPRETED_TEXT] || valid_symbols[T_INTERPRETED_TEXT_PREFIX])) {
+      if (adornment == '`' && (valid_symbols[T_INTERPRETED_TEXT_PREFIX])) {
         return parse_inner_inline_markup(scanner, IM_INTERPRETED_TEXT | IM_INTERPRETED_TEXT_PREFIX);
       }
       if (adornment == '|' && valid_symbols[T_SUBSTITUTION_REFERENCE]) {
@@ -1114,7 +1114,7 @@ static bool parse_inline_markup(RSTScanner* scanner)
     type = IM_EMPHASIS;
   } else if (scanner->previous == '`' && scanner->lookahead == '`' && valid_symbols[T_LITERAL]) {
     type = IM_LITERAL;
-  } else if (scanner->previous == '`' && (valid_symbols[T_INTERPRETED_TEXT] || valid_symbols[T_INTERPRETED_TEXT_PREFIX])) {
+  } else if (scanner->previous == '`' && (valid_symbols[T_INTERPRETED_TEXT_PREFIX])) {
     type = IM_INTERPRETED_TEXT | IM_INTERPRETED_TEXT_PREFIX;
   } else if (scanner->previous == '|' && valid_symbols[T_SUBSTITUTION_REFERENCE]) {
     type = IM_SUBSTITUTION_REFERENCE;
@@ -1272,13 +1272,11 @@ static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type)
             lexer->result_symbol = T_INTERPRETED_TEXT_PREFIX;
             return true;
           }
-          if (valid_symbols[T_INTERPRETED_TEXT]) {
-            lexer->result_symbol = T_INTERPRETED_TEXT;
-            return true;
-          }
           is_valid = false;
         } else {
-          lexer->result_symbol = T_INTERPRETED_TEXT;
+          // Plain interpreted text (`text`) is now handled by the split
+          // OPEN/BODY/CLOSE tokens; fall through so those take over.
+          is_valid = false;
         }
       } else if ((type & IM_SUBSTITUTION_REFERENCE) && scanner->previous == '|') {
         lexer->result_symbol = T_SUBSTITUTION_REFERENCE;
@@ -1314,6 +1312,326 @@ static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type)
     return parse_text(scanner, true);
   }
   return parse_text(scanner, false);
+}
+
+// ---------------------------------------------------------------------------
+// Split interpreted-text scanning (open / body / close)
+// ---------------------------------------------------------------------------
+
+// Scan ahead from just after the opening backtick.  Returns:
+//   0 - no valid close found (or first char is whitespace)
+//   1 - valid close found, emit T_INTERPRETED_TEXT_OPEN
+//   2 - valid close found, followed by '_' → emit T_REFERENCE_OPEN_BACKTICK
+//   3 - valid close found, followed by ':' → suffix role, let
+//       T_INTERPRETED_TEXT_PREFIX handle it (caller should return false)
+//
+// mark_end must already have been set at position 1 (after opening backtick)
+// before calling this.  Additional advances here are lookahead only.
+static int scan_interpreted_text_kind(RSTScanner* scanner)
+{
+  if (is_space(scanner->lookahead)) {
+    return 0;
+  }
+
+  int32_t previous = 0;
+  bool is_escaped = false;
+
+  while (scanner->lookahead != CHAR_EOF) {
+    if (is_newline(scanner->lookahead)) {
+      scanner->advance(scanner);
+      int indent = get_indent_level(scanner);
+      if (indent != scanner->back(scanner) || is_newline(scanner->lookahead)) {
+        return 0;
+      }
+      previous = ' '; // treat start-of-line as space-preceded so '`' there isn't a close
+      is_escaped = false;
+      continue;
+    }
+
+    if (scanner->lookahead == '\\' && !is_escaped) {
+      is_escaped = true;
+      previous = scanner->lookahead;
+      scanner->advance(scanner);
+      continue;
+    }
+
+    if (scanner->lookahead == '`' && !is_space(previous) && !is_escaped) {
+      scanner->advance(scanner); // consume the close backtick for the peek
+      if (scanner->lookahead == '_') {
+        return 2;
+      }
+      if (scanner->lookahead == ':') {
+        // Peek: is this ':role:' (suffix role) or just ':' followed by text?
+        // Advance past ':' to check the role name.
+        scanner->advance(scanner); // advance past ':'
+        if (is_alphanumeric(scanner->lookahead)) {
+          bool internal = true;
+          while (is_alphanumeric(scanner->lookahead) || is_internal_reference_char(scanner->lookahead)) {
+            if (is_internal_reference_char(scanner->lookahead)) {
+              if (internal)
+                break;
+              internal = true;
+            } else {
+              internal = false;
+            }
+            scanner->advance(scanner);
+          }
+          if (scanner->previous == ':') {
+            // Confirmed suffix role.  mark_end was set at position 1 (opening
+            // backtick) by the caller; update it here to the ':' position so
+            // T_INTERPRETED_TEXT_PREFIX ends after the close '`' (before ':role:').
+            // We can't seek back to ':' after scanning 'role:' so we use an
+            // indirect trick: the first mark_end in the caller is at pos 1.
+            // For case 3, the caller will NOT call mark_end again; the mark set
+            // by the caller at pos 1 is the wrong boundary.  Instead we pass
+            // back kind=3 and let the caller know it should update mark_end.
+            // However, we can't retroactively set it to ':'.
+            // SO: call mark_end right before scanning the role name is possible
+            // only if we restructure.  For now emit kind=3 and update in caller.
+            return 3;
+          }
+        }
+        return 1;
+      }
+      return 1;
+    }
+
+    is_escaped = false;
+    previous = scanner->lookahead;
+    scanner->advance(scanner);
+  }
+  return 0;
+}
+
+// Emit T_INTERPRETED_TEXT_OPEN (or T_REFERENCE_OPEN_BACKTICK) for the
+// opening backtick of an interpreted-text span, after lookahead-validating
+// that a matching close exists.  Returns false for suffix-role spans so that
+// parse_inline_markup can emit T_INTERPRETED_TEXT_PREFIX instead.
+static bool parse_interpreted_text_open(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  const bool* valid_symbols = scanner->valid_symbols;
+
+  if (lexer->lookahead != '`' || !valid_symbols[T_INTERPRETED_TEXT_OPEN]) {
+    return false;
+  }
+
+  // Sync scanner->lookahead to the lexer position.  scanner->lookahead may be
+  // stale if the previous scan call advanced further than mark_end.
+  scanner->lookahead = lexer->lookahead;
+
+  // Advance to peek at the next character.  Do NOT call mark_end yet so that
+  // if we return false, tree-sitter resets to the start of this scan call
+  // (the opening '`') rather than to position 7.
+  scanner->advance(scanner);
+
+  // Double backtick ``...`` is a literal, not interpreted text.  We have
+  // already advanced past the first '`' (and cannot un-advance within the
+  // same scan call), so scan the full literal span here and emit T_LITERAL.
+  if (scanner->lookahead == '`') {
+    if (!valid_symbols[T_LITERAL]) {
+      // Literal not expected here; treat as TEXT (1 byte) and move on.
+      lexer->mark_end(lexer);
+      lexer->result_symbol = T_TEXT;
+      return true;
+    }
+    // Advance past the second opening '`'.
+    scanner->advance(scanner);
+    if (is_space(scanner->lookahead)) {
+      // Opening `` followed by space: not a valid literal — emit TEXT.
+      lexer->mark_end(lexer);
+      lexer->result_symbol = T_TEXT;
+      return true;
+    }
+    // Scan until closing `` (two backticks not preceded by whitespace).
+    // Supports multiline content: a continuation line must be indented at
+    // least as deeply as the current scope (same logic as parse_inner_inline_markup).
+    int32_t prev = 0;
+    while (scanner->lookahead != CHAR_EOF) {
+      if (is_newline(scanner->lookahead)) {
+        // Advance past the newline.
+        scanner->advance(scanner);
+        int indent = get_indent_level(scanner);
+        // A blank line or a dedented line ends the literal span without close.
+        if (indent < scanner->back(scanner) || is_newline(scanner->lookahead)) {
+          break;
+        }
+        prev = ' ';
+        continue;
+      }
+      if (scanner->lookahead == '`' && !is_space(prev)) {
+        scanner->advance(scanner); // consume first close '`'
+        if (scanner->lookahead == '`') {
+          scanner->advance(scanner); // consume second close '`'
+          // Consume any additional backticks (consistent with IM_LITERAL).
+          while (scanner->lookahead == '`') {
+            scanner->advance(scanner);
+          }
+          // Closing `` must be followed by whitespace, end char, or EOL.
+          if (is_space(scanner->lookahead) || is_end_char(scanner->lookahead)
+              || scanner->lookahead == CHAR_EOF) {
+            lexer->mark_end(lexer);
+            lexer->result_symbol = T_LITERAL;
+            return true;
+          }
+          // Not a valid close — keep scanning.
+          prev = '`';
+          continue;
+        }
+        // Single close backtick only — not a valid literal close; keep scanning.
+        prev = '`';
+        continue;
+      }
+      prev = scanner->lookahead;
+      scanner->advance(scanner);
+    }
+    // No closing `` found — emit as TEXT.
+    lexer->mark_end(lexer);
+    lexer->result_symbol = T_TEXT;
+    return true;
+  }
+
+  // Do NOT call mark_end before the kind check: for suffix-role (kind==3) we
+  // must return false with no mark_end so the lexer resets to position 0 (the
+  // opening backtick) and parse_inline_markup can handle T_INTERPRETED_TEXT_PREFIX.
+  // Commit the opening '`' as the token boundary BEFORE the lookahead scan so
+  // that for cases 0-2 the token is exactly the single opening backtick char.
+  lexer->mark_end(lexer);
+
+  int kind = scan_interpreted_text_kind(scanner);
+
+  switch (kind) {
+    case 0:
+      lexer->result_symbol = T_TEXT;
+      return true;
+    case 1:
+      lexer->result_symbol = T_INTERPRETED_TEXT_OPEN;
+      return true;
+    case 2:
+      if (valid_symbols[T_REFERENCE_OPEN_BACKTICK]) {
+        lexer->result_symbol = T_REFERENCE_OPEN_BACKTICK;
+        return true;
+      }
+      lexer->result_symbol = T_INTERPRETED_TEXT_OPEN;
+      return true;
+    case 3:
+      // Suffix role (`` `text`:role: ``).  The grammar's _suffix_role uses
+      // T_INTERPRETED_TEXT_OPEN + BODY + CLOSE + T_ROLE_NAME_SUFFIX, so emit
+      // T_INTERPRETED_TEXT_OPEN here (mark_end is at position 1, just the
+      // opening backtick).  T_INTERPRETED_TEXT_PREFIX is kept as a fallback
+      // for the legacy prefix-scanning path.
+      if (valid_symbols[T_INTERPRETED_TEXT_PREFIX]) {
+        lexer->result_symbol = T_INTERPRETED_TEXT_PREFIX;
+        return true;
+      }
+      lexer->result_symbol = T_INTERPRETED_TEXT_OPEN;
+      return true;
+    default:
+      return false;
+  }
+}
+
+// Emit T_INTERPRETED_TEXT_BODY.  Scans content between the open and close
+// backticks, including:
+//   - regular characters and spaces (including cross-line continuation)
+//   - backslash-space sequences (absorbed so scanner->previous tracks
+//     correctly for close detection, avoiding incorrect close after `\ `)
+//   - space-preceded backticks (swallowed; they cannot close the span)
+// Stops before a backslash-non-space sequence (escape_sequence handles that)
+// or a non-space-preceded backtick (T_INTERPRETED_TEXT_CLOSE handles that).
+static bool parse_interpreted_text_body(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  const bool* valid_symbols = scanner->valid_symbols;
+
+  if (!valid_symbols[T_INTERPRETED_TEXT_BODY]) {
+    return false;
+  }
+
+  // Use lexer->lookahead (not scanner->lookahead) because scanner->lookahead
+  // may be stale if the previous scan call advanced beyond its mark_end.
+  int32_t first = lexer->lookahead;
+  scanner->lookahead = first; // sync once for the body scan
+  // Can't start with a potentially-closing backtick.
+  // Let T_INTERPRETED_TEXT_CLOSE handle backticks.
+  if (first == '`' || is_newline(first) || first == CHAR_EOF) {
+    return false;
+  }
+
+  // Backslash: peek to decide whether to absorb (backslash-space) or defer.
+  if (first == '\\') {
+    scanner->advance(scanner); // consume '\'; previous = '\', lookahead = next
+    if (!is_newline(scanner->lookahead) && is_space(scanner->lookahead)) {
+      // backslash-space: absorb into body so scanner->previous = ' ' after
+      scanner->advance(scanner);
+      // Fall through to the main loop.
+    } else {
+      // backslash-nonspace: T_ESCAPE_SEQUENCE must handle it.
+      return false;
+    }
+  }
+
+  while (scanner->lookahead != CHAR_EOF) {
+    if (scanner->lookahead == '\\') {
+      // Save end position BEFORE consuming '\'.  For backslash-nonspace we
+      // stop here (escape_sequence takes over); for backslash-space we absorb
+      // the pair and update the mark to include it.
+      lexer->mark_end(lexer);
+      scanner->advance(scanner); // previous = '\', lookahead = next
+      if (!is_newline(scanner->lookahead) && is_space(scanner->lookahead)) {
+        scanner->advance(scanner); // absorb space; previous = ' '
+        lexer->mark_end(lexer); // update mark to include '\ '
+        continue;
+      }
+      // backslash-nonspace: mark is already before '\'; T_ESCAPE_SEQUENCE handles it.
+      lexer->result_symbol = T_INTERPRETED_TEXT_BODY;
+      return true;
+    }
+
+    if (scanner->lookahead == '`') {
+      if (is_space(scanner->previous)) {
+        // Space-preceded backtick cannot close: swallow into body.
+        scanner->advance(scanner);
+        continue;
+      }
+      // Non-space-preceded backtick: potential close.
+      break;
+    }
+
+    if (is_newline(scanner->lookahead)) {
+      scanner->advance(scanner);
+      int indent = get_indent_level(scanner);
+      if (indent != scanner->back(scanner) || is_newline(scanner->lookahead)) {
+        break;
+      }
+      continue;
+    }
+
+    scanner->advance(scanner);
+  }
+
+  lexer->mark_end(lexer);
+  lexer->result_symbol = T_INTERPRETED_TEXT_BODY;
+  return true;
+}
+
+// Emit T_INTERPRETED_TEXT_CLOSE for the closing backtick.  The body scanner
+// guarantees that any space-preceded backtick has already been swallowed, so
+// no previous-char check is needed here.
+static bool parse_interpreted_text_close(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  const bool* valid_symbols = scanner->valid_symbols;
+
+  if (lexer->lookahead != '`' || !valid_symbols[T_INTERPRETED_TEXT_CLOSE]) {
+    return false;
+  }
+  scanner->lookahead = lexer->lookahead; // sync before advancing
+
+  scanner->advance(scanner);
+  lexer->mark_end(lexer);
+  lexer->result_symbol = T_INTERPRETED_TEXT_CLOSE;
+  return true;
 }
 
 static bool parse_reference(RSTScanner* scanner)

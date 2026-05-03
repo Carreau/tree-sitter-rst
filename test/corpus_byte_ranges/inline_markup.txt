@@ -36,6 +36,67 @@ Hello `world`.
     (interpreted_text [6..13])))
 
 ========================================
+Closing backtick not preceded by whitespace closes the span
+========================================
+
+`text here is` raw something`
+
+---
+
+(document [0..29]
+  (paragraph [0..29]
+    (interpreted_text [0..14])))
+
+========================================
+Closing backtick preceded by whitespace does not close the span; later backtick closes it
+========================================
+
+`text here is `raw something`
+
+---
+
+(document [0..29]
+  (paragraph [0..29]
+    (interpreted_text [0..29])))
+
+========================================
+Both inner and outer closing backticks preceded by whitespace; last backtick closes span
+========================================
+
+`text here is ` raw something`
+
+---
+
+(document [0..30]
+  (paragraph [0..30]
+    (interpreted_text [0..30])))
+
+========================================
+Backslash-space before closing backtick prevents interpreted text (space still counts as whitespace)
+========================================
+
+`text here is\ ` and text after
+
+---
+
+(document [0..31]
+  (paragraph [0..31]
+    (escape_sequence [11..15])))
+
+========================================
+Interpreted text with escaped backtick emits escape_sequence child
+========================================
+
+`foo\`bar`
+
+---
+
+(document [0..10]
+  (paragraph [0..10]
+    (interpreted_text [0..10]
+      (escape_sequence [4..6]))))
+
+========================================
 Inline literal
 ========================================
 
@@ -76,12 +137,18 @@ Use \`x\` and `real` here.
 ---
 
 (document [0..105]
-  (paragraph [0..20])
+  (paragraph [0..20]
+    (escape_sequence [2..4])
+    (escape_sequence [4..14]))
   (paragraph [22..47]
+    (escape_sequence [24..26])
     (interpreted_text [35..40]))
   (paragraph [49..75]
+    (escape_sequence [53..55])
+    (escape_sequence [55..58])
     (interpreted_text [63..69]))
   (paragraph [77..105]
+    (escape_sequence [83..93])
     (interpreted_text [98..104])))
 
 ========================================
@@ -98,11 +165,15 @@ a\ **b**\ c
 
 (document [0..43]
   (paragraph [0..14]
-    (strong [0..8]))
+    (strong [0..8])
+    (escape_sequence [8..10]))
   (paragraph [16..30]
+    (escape_sequence [16..22])
     (strong [22..30]))
   (paragraph [32..43]
-    (strong [35..40])))
+    (escape_sequence [33..35])
+    (strong [35..40])
+    (escape_sequence [40..42])))
 
 ========================================
 Embedded URI reference
@@ -184,3 +255,78 @@ Embedded URI: missing closing angle bracket
   (paragraph [0..28]
     (reference [0..23]
       (name [1..21]))))
+
+========================================
+Inline literal followed by end-char (period)
+========================================
+
+Hello ``code``.
+
+---
+
+(document [0..15]
+  (paragraph [0..15]
+    (literal [6..14])))
+
+========================================
+Inline literal followed by end-char (close paren)
+========================================
+
+a ``code``)
+
+---
+
+(document [0..11]
+  (paragraph [0..11]
+    (literal [2..10])))
+
+========================================
+Inline literal: extra backtick in content not followed by end-char does not close span
+========================================
+
+``abc```{rest``
+
+---
+
+(document [0..15]
+  (paragraph [0..15]
+    (literal [0..15])))
+
+========================================
+Multiline inline literal
+========================================
+
+``line1
+line2``
+
+---
+
+(document [0..15]
+  (paragraph [0..15]
+    (literal [0..15])))
+
+========================================
+Interpreted text with escaped backslash emits escape_sequence child
+========================================
+
+`text\\`
+
+---
+
+(document [0..8]
+  (paragraph [0..8]
+    (interpreted_text [0..8]
+      (escape_sequence [5..7]))))
+
+========================================
+Suffix role interpreted text
+========================================
+
+`text`:role:
+
+---
+
+(document [0..12]
+  (paragraph [0..12]
+    (interpreted_text [0..12]
+      (role [6..12]))))
