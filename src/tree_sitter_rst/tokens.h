@@ -42,6 +42,7 @@ enum TokenType {
 
   // Inline markup
   T_TEXT,
+  T_ESCAPE_SEQUENCE,
   T_EMPHASIS,
   T_STRONG,
   T_INTERPRETED_TEXT,

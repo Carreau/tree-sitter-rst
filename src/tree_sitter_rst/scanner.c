@@ -296,6 +296,10 @@ static bool rst_scanner_scan(RSTScanner* scanner)
     return parse_reference(scanner);
   }
 
+  if (current == '\\' && valid_symbols[T_ESCAPE_SEQUENCE]) {
+    return parse_text(scanner, true);
+  }
+
   if (!is_space(current) && valid_symbols[T_TEXT]) {
     return parse_text(scanner, true);
   }
