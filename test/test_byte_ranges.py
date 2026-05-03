@@ -25,6 +25,7 @@ Multiple test cases can appear consecutively in a single file.  A new
 
 from __future__ import annotations
 
+import difflib
 import re
 from pathlib import Path
 
@@ -125,12 +126,20 @@ for _corpus_file in sorted(_CORPUS_DIR.glob("*.txt")):
 _LANGUAGE = tree_sitter.Language(tree_sitter_rst.language())
 
 
+def _tree_diff(actual: str, expected: str) -> str:
+    """Return a unified diff between *expected* and *actual* tree strings."""
+    a_lines = expected.splitlines(keepends=True)
+    b_lines = actual.splitlines(keepends=True)
+    diff = difflib.unified_diff(a_lines, b_lines, fromfile="expected", tofile="actual", lineterm="")
+    return "".join(diff)
+
+
 @pytest.mark.parametrize("source,expected", _PARAMS)
 def test_byte_ranges(source: str, expected: str) -> None:
     """Parse *source* and assert the rendered tree with byte ranges matches *expected*."""
     parser = tree_sitter.Parser(_LANGUAGE)
     tree = parser.parse(source.encode())
     actual = _render(tree.root_node)
-    assert actual == expected, (
-        f"\nActual:\n{actual}\n\nExpected:\n{expected}"
-    )
+    if actual != expected:
+        diff = _tree_diff(actual, expected)
+        pytest.fail(f"\nTree diff (--- expected / +++ actual):\n{diff}")
