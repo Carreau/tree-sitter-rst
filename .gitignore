@@ -42,6 +42,9 @@ zig-out/
 *.obj
 *.o
 
+# tree-sitter generated logs
+log.html
+
 # Archives
 *.tar.gz
 *.tgz

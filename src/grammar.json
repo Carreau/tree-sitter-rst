@@ -1265,6 +1265,28 @@
                   ]
                 },
                 {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "ALIAS",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "field_list"
+                      },
+                      "named": true,
+                      "value": "options"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "_blankline"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "_dedent"
+                    }
+                  ]
+                },
+                {
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
