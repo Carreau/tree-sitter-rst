@@ -601,6 +601,7 @@ module.exports = grammar({
         $._newline,
         choice(
           seq(alias($.field_list, $.options), $._dedent),
+          seq(alias($.field_list, $.options), $._blankline, $._dedent),
           alias($._indented_text_block, $.content),
           seq(alias($.field_list, $.options), $._blankline, alias($._indented_text_block, $.content)),
         ),

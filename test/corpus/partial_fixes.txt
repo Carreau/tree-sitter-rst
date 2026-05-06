@@ -100,3 +100,27 @@ When using ``distutils``, for example in ``setup.py``
     (literal)
     (literal)
     (ERROR)))
+================================================================================
+Directive with options followed by bullet list
+================================================================================
+
+.. note::
+     :k: v
+
+* a
+
+--------------------------------------------------------------------------------
+
+(document
+  (directive
+    name: (type)
+    body: (body
+      (options
+        (field
+          (field_name)
+          (field_body
+            (paragraph))))))
+  (bullet_list
+    (list_item
+      (body
+        (paragraph)))))
