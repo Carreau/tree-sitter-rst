@@ -216,6 +216,19 @@ static bool rst_scanner_scan(RSTScanner* scanner)
     return parse_directive_name(scanner);
   }
 
+  if (valid_symbols[T_REFERENCE_NAME]) {
+    return parse_reference_name(scanner);
+  }
+
+  if (valid_symbols[T_EMBEDDED_URI] && current != '>'
+      && !is_newline(current) && current != '`' && current != CHAR_EOF) {
+    return parse_embedded_uri(scanner);
+  }
+
+  if (current == '`' && valid_symbols[T_REFERENCE_END_MARK]) {
+    return parse_reference_end_mark(scanner);
+  }
+
   if (is_inline_markup_start_char(current)
       && (valid_symbols[T_EMPHASIS]
           || valid_symbols[T_STRONG]
@@ -226,7 +239,8 @@ static bool rst_scanner_scan(RSTScanner* scanner)
           || valid_symbols[T_INLINE_TARGET]
           || valid_symbols[T_FOOTNOTE_REFERENCE]
           || valid_symbols[T_CITATION_REFERENCE]
-          || valid_symbols[T_REFERENCE])) {
+          || valid_symbols[T_REFERENCE]
+          || valid_symbols[T_REFERENCE_OPEN_BACKTICK])) {
     return parse_inline_markup(scanner);
   }
 

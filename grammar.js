@@ -63,6 +63,10 @@ module.exports = grammar({
     $.footnote_reference,
     $.citation_reference,
     $.reference,
+    $._reference_open_backtick,
+    $._reference_name,
+    $._embedded_uri,
+    $._reference_end_mark,
     $.standalone_hyperlink,
 
     // Markup blocks
@@ -671,6 +675,7 @@ module.exports = grammar({
     - Citation [python]_
     - reference_
     - `reference`_
+    - `text <http://embedded.uri>`_
     - Hyperlink https://stsewd.dev/
     */
     _line: $ => seq(
@@ -695,7 +700,29 @@ module.exports = grammar({
       $.footnote_reference,
       $.citation_reference,
       $.reference,
+      alias($._backticked_reference, $.reference),
       $.standalone_hyperlink,
+    ),
+
+    /*
+
+    Phrase / embedded URI references:
+
+    - `simple phrase`_
+    - `simple phrase`__
+    - `Python <http://www.python.org>`_
+    - `Python <http://www.python.org>`__
+    - `<http://www.example.org>`__
+    */
+    _backticked_reference: $ => seq(
+      alias($._reference_open_backtick, '`'),
+      optional(alias($._reference_name, $.name)),
+      optional(seq(
+        '<',
+        alias($._embedded_uri, $.uri),
+        '>',
+      )),
+      alias($._reference_end_mark, '_'),
     ),
 
     // Interpreted text
