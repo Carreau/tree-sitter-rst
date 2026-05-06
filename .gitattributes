@@ -1,10 +1,7 @@
 * text=auto eol=lf
 
 # Generated source files
-# Note: src/grammar.json is the hand-maintained grammar input that
-# `tree-sitter generate` consumes to produce src/parser.c and
-# src/node-types.json — it is NOT generated and is intentionally
-# excluded from the list below.
+src/grammar.json linguist-generated
 src/node-types.json linguist-generated
 src/parser.c linguist-generated
 src/tree_sitter/* linguist-generated
@@ -27,6 +24,7 @@ package-lock.json linguist-generated
 
 # Python bindings
 bindings/python/** linguist-generated
+bindings/python/tests/** -linguist-generated
 setup.py linguist-generated
 pyproject.toml linguist-generated
 
