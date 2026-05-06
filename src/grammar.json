@@ -175,6 +175,14 @@
         {
           "type": "SYMBOL",
           "name": "doctest_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "grid_table"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "simple_table"
         }
       ]
     },
@@ -823,6 +831,14 @@
           "name": "_blankline"
         }
       ]
+    },
+    "grid_table": {
+      "type": "SYMBOL",
+      "name": "_grid_table"
+    },
+    "simple_table": {
+      "type": "SYMBOL",
+      "name": "_simple_table"
     },
     "_explicit_markup_block": {
       "type": "REPEAT1",
@@ -1854,6 +1870,14 @@
     {
       "type": "SYMBOL",
       "name": "_doctest_block_mark"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_grid_table"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_simple_table"
     },
     {
       "type": "SYMBOL",

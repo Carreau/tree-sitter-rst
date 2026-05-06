@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include "chars.h"
+#include "table.h"
 #include "tokens.h"
 #include <stdio.h>
 
@@ -76,6 +77,7 @@ static bool parse_overline(RSTScanner* scanner)
   const bool* valid_symbols = scanner->valid_symbols;
   TSLexer* lexer = scanner->lexer;
   int32_t adornment = scanner->lookahead;
+  uint32_t start_col = lexer->get_column(lexer);
 
   if (!is_adornment_char(scanner->lookahead)
       || (!valid_symbols[T_OVERLINE] && !valid_symbols[T_TRANSITION])) {
@@ -95,6 +97,15 @@ static bool parse_overline(RSTScanner* scanner)
       if (is_space(scanner->lookahead)) {
         break;
       }
+      // '+' followed by '-'/'='/'+' is the start of a grid-table border
+      // — try it before giving up to parse_text.
+      if (adornment == '+' && overline_length == 1
+          && (scanner->lookahead == '-' || scanner->lookahead == '='
+              || scanner->lookahead == '+')) {
+        if (try_grid_table_after_plus(scanner, start_col)) {
+          return true;
+        }
+      }
       return parse_text(scanner, false);
     }
     scanner->advance(scanner);
@@ -107,6 +118,12 @@ static bool parse_overline(RSTScanner* scanner)
   consume_inline_whitespace(scanner);
 
   if (!is_newline(scanner->lookahead)) {
+    // '=== ===' is a simple-table border, not a section adornment with
+    // trailing text. Try the table interpretation before parse_text.
+    if (adornment == '=' && scanner->lookahead == '='
+        && try_simple_table_after_run(scanner, start_col)) {
+      return true;
+    }
     return parse_text(scanner, false);
   }
 
