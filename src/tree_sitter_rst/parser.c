@@ -37,7 +37,10 @@ static bool parse_indent(RSTScanner* scanner)
   }
 
   int current_indent = scanner->back(scanner);
-  if (indent > current_indent && valid_symbols[T_INDENT]) {
+  // T_INDENT is only valid when there are no blank lines preceding the
+  // indented content. With blank lines, T_BLANKLINE must be emitted first.
+  if (indent > current_indent && valid_symbols[T_INDENT]
+      && (newlines == 0 || !valid_symbols[T_BLANKLINE])) {
     scanner->push(scanner, indent);
     lexer->result_symbol = T_INDENT;
     return true;
@@ -101,10 +104,7 @@ static bool parse_overline(RSTScanner* scanner)
   // Mark the transition token
   lexer->mark_end(lexer);
 
-  // Consume all whitespaces.
-  while (is_space(scanner->lookahead) && !is_newline(scanner->lookahead)) {
-    scanner->advance(scanner);
-  }
+  consume_inline_whitespace(scanner);
 
   if (!is_newline(scanner->lookahead)) {
     return parse_text(scanner, false);
@@ -144,10 +144,7 @@ static bool parse_overline(RSTScanner* scanner)
     underline_length++;
   }
 
-  // Consume all whitespaces.
-  while (is_space(scanner->lookahead) && !is_newline(scanner->lookahead)) {
-    scanner->advance(scanner);
-  }
+  consume_inline_whitespace(scanner);
 
   if (!is_newline(scanner->lookahead)) {
     return parse_text(scanner, false);
@@ -195,10 +192,7 @@ static bool parse_underline(RSTScanner* scanner)
   // Mark the transition token
   lexer->mark_end(lexer);
 
-  // Consume all whitespaces.
-  while (is_space(scanner->lookahead) && !is_newline(scanner->lookahead)) {
-    scanner->advance(scanner);
-  }
+  consume_inline_whitespace(scanner);
 
   if (!is_newline(scanner->lookahead)) {
     return parse_text(scanner, false);
@@ -323,7 +317,7 @@ static bool fallback_adornment(RSTScanner* scanner, int32_t adornment, int adorn
   return false;
 }
 
-bool parse_char_bullet(RSTScanner* scanner)
+static bool parse_char_bullet(RSTScanner* scanner)
 {
   const bool* valid_symbols = scanner->valid_symbols;
 
@@ -479,21 +473,11 @@ static bool parse_inner_list_element(RSTScanner* scanner, int consumed_chars, en
         return true;
       }
     } else if (token_type == T_EXPLICIT_MARKUP_START) {
-      // Go to the next line.
-      while (!is_newline(scanner->lookahead)) {
-        scanner->advance(scanner);
-      }
-      scanner->advance(scanner);
+      advance_to_next_line(scanner);
 
       // The first non-empty line after the marker
       // determines the indentation of the body.
-      while (true) {
-        indent = get_indent_level(scanner);
-        if (!is_newline(scanner->lookahead) || scanner->lookahead == CHAR_EOF) {
-          break;
-        }
-        scanner->advance(scanner);
-      }
+      indent = skip_blank_lines_get_indent(scanner);
       if (indent <= scanner->back(scanner)) {
         indent = scanner->back(scanner) + 1;
       }
@@ -612,22 +596,11 @@ static bool parse_field_mark_end(RSTScanner* scanner)
   if (is_space(scanner->lookahead)) {
     // Consume all whitespaces.
     get_indent_level(scanner);
-    // Go to the next line.
-    while (!is_newline(scanner->lookahead)) {
-      scanner->advance(scanner);
-    }
-    scanner->advance(scanner);
+    advance_to_next_line(scanner);
 
     // The first non-empty line after the field name marker
     // determines the indentation of the field body.
-    int indent = 0;
-    while (true) {
-      indent = get_indent_level(scanner);
-      if (!is_newline(scanner->lookahead) || scanner->lookahead == CHAR_EOF) {
-        break;
-      }
-      scanner->advance(scanner);
-    }
+    int indent = skip_blank_lines_get_indent(scanner);
     if (indent > scanner->back(scanner)) {
       scanner->push(scanner, indent);
     } else {
@@ -651,7 +624,7 @@ static bool parse_label(RSTScanner* scanner)
     return false;
   }
   scanner->advance(scanner);
-  int type = parse_inner_label_name(scanner);
+  unsigned type = parse_inner_label_name(scanner);
   if ((type == IM_CITATION_REFERENCE && valid_symbols[T_CITATION_LABEL])
       || (type == IM_FOOTNOTE_REFERENCE && valid_symbols[T_FOOTNOTE_LABEL])) {
     scanner->advance(scanner);
@@ -669,9 +642,9 @@ static bool parse_label(RSTScanner* scanner)
   return false;
 }
 
-static int parse_inner_label_name(RSTScanner* scanner)
+static unsigned parse_inner_label_name(RSTScanner* scanner)
 {
-  int type = -1;
+  unsigned type = IM_NONE;
   if (is_number(scanner->lookahead)) {
     while (is_number(scanner->lookahead)) {
       scanner->advance(scanner);
@@ -700,14 +673,14 @@ static int parse_inner_label_name(RSTScanner* scanner)
       type = IM_CITATION_REFERENCE;
     }
   } else {
-    return -1;
+    return IM_NONE;
   }
 
   if (scanner->lookahead == ']') {
     return type;
   }
 
-  return -1;
+  return IM_NONE;
 }
 
 static bool parse_inner_alphanumeric_label(RSTScanner* scanner)
@@ -844,9 +817,9 @@ static bool parse_directive_name(RSTScanner* scanner)
   bool keep_parsing = true;
   while (is_alphanumeric(scanner->lookahead)
       || is_internal_reference_char(scanner->lookahead)
-      || (is_space(scanner->lookahead) && !is_newline(scanner->lookahead))) {
+      || is_inline_space(scanner->lookahead)) {
     // Directive names can have one (and only one) space before `::`.
-    if (is_space(scanner->lookahead)) {
+    if (is_inline_space(scanner->lookahead)) {
       lexer->mark_end(lexer);
       scanner->advance(scanner);
       scanner->advance(scanner);
@@ -937,10 +910,7 @@ static bool parse_innner_literal_block_mark(RSTScanner* scanner)
 
   lexer->mark_end(lexer);
 
-  // Consume all whitespaces.
-  while (is_space(scanner->lookahead) && !is_newline(scanner->lookahead)) {
-    scanner->advance(scanner);
-  }
+  consume_inline_whitespace(scanner);
 
   if (!is_newline(scanner->lookahead)) {
     return parse_text(scanner, false);
@@ -1052,6 +1022,12 @@ static bool parse_attribution_mark(RSTScanner* scanner)
     }
 
     if (consumed_chars < 2 || consumed_chars > 3) {
+      // A single dash followed by a space is a char bullet, not an attribution.
+      // parse_char_bullet can't be tried after this point because we've already
+      // advanced past the dash, so handle the fallback here.
+      if (consumed_chars == 1 && is_space(scanner->lookahead) && valid_symbols[T_CHAR_BULLET]) {
+        return parse_inner_list_element(scanner, 1, T_CHAR_BULLET);
+      }
       return false;
     }
   } else {
@@ -1144,7 +1120,7 @@ static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type)
   bool is_escaped = false;
 
   if (type & IM_FOOTNOTE_REFERENCE || type & IM_CITATION_REFERENCE) {
-    int final_type = parse_inner_label_name(scanner);
+    unsigned final_type = parse_inner_label_name(scanner);
     if ((final_type == IM_FOOTNOTE_REFERENCE && type & IM_FOOTNOTE_REFERENCE)
         || (final_type == IM_CITATION_REFERENCE && type & IM_CITATION_REFERENCE)) {
       scanner->advance(scanner);
@@ -1353,17 +1329,14 @@ static bool parse_inner_standalone_hyperlink(RSTScanner* scanner)
 {
   TSLexer* lexer = scanner->lexer;
 
-  const unsigned MAX_SCHEMA_LEN = 20;
-  char* schema = malloc(sizeof(char) * MAX_SCHEMA_LEN);
+  // The cast to (char) is safe: is_alphanumeric is true only for ASCII
+  // [0-9A-Za-z], which all fit in a single byte.
+  enum { MAX_SCHEMA_LEN = 20 };
+  char schema[MAX_SCHEMA_LEN];
   unsigned consumed_chars = 0;
 
-  // TODO: cast this more safely
   schema[consumed_chars++] = (char)scanner->previous;
-  while (consumed_chars < MAX_SCHEMA_LEN) {
-    if (!is_alphanumeric(scanner->lookahead)) {
-      break;
-    }
-    // TODO: cast this more safely
+  while (consumed_chars < MAX_SCHEMA_LEN && is_alphanumeric(scanner->lookahead)) {
     schema[consumed_chars++] = (char)scanner->lookahead;
     scanner->advance(scanner);
   }
@@ -1379,10 +1352,6 @@ static bool parse_inner_standalone_hyperlink(RSTScanner* scanner)
   } else if (scanner->lookahead == '@') {
     is_valid = true;
   }
-
-  // Clean up
-  free(schema);
-  schema = NULL;
 
   if (!is_valid) {
     if ((!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead)) || is_internal_reference_char(scanner->lookahead)) {
@@ -1457,22 +1426,19 @@ static bool parse_role(RSTScanner* scanner)
     // Consume all whitespaces.
     get_indent_level(scanner);
     lexer->mark_end(lexer);
-    // Go to the next line
-    while (!is_newline(scanner->lookahead)) {
-      scanner->advance(scanner);
-    }
-    scanner->advance(scanner);
+    advance_to_next_line(scanner);
 
     // The first non-empty line after the field name marker
     // determines the indentation of the field body.
-    int indent = 0;
-    while (true) {
-      indent = get_indent_level(scanner);
-      if (!is_newline(scanner->lookahead) || scanner->lookahead == CHAR_EOF) {
-        break;
-      }
-      scanner->advance(scanner);
+    int indent = skip_blank_lines_get_indent(scanner);
+
+    // Check if the next line is at a lower indentation than the current context
+    // and starts with a character bullet. This indicates a new list item above us,
+    // not a field body — so the colon is plain text, not a field mark end.
+    if (indent < scanner->back(scanner) && is_char_bullet(scanner->lookahead)) {
+      return false;
     }
+
     if (indent > scanner->back(scanner)) {
       scanner->push(scanner, indent);
     } else {
@@ -1509,8 +1475,13 @@ static bool parse_inner_role(RSTScanner* scanner)
   if (ok) {
     if (scanner->lookahead == '`' && valid_symbols[T_ROLE_NAME_PREFIX]) {
       lexer->mark_end(lexer);
-      lexer->result_symbol = T_ROLE_NAME_PREFIX;
-      return true;
+      scanner->advance(scanner);
+      if (scanner->lookahead != '`') {
+        // Single backtick: valid role prefix syntax :role:`...`
+        lexer->result_symbol = T_ROLE_NAME_PREFIX;
+        return true;
+      }
+      // Double backtick after role name is literal syntax, not a role prefix.
     }
 
     if (is_space(scanner->lookahead) && valid_symbols[T_FIELD_MARK]) {
