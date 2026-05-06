@@ -1559,6 +1559,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "escape_sequence"
+        },
+        {
+          "type": "SYMBOL",
           "name": "emphasis"
         },
         {
@@ -1882,6 +1886,10 @@
     {
       "type": "SYMBOL",
       "name": "_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "escape_sequence"
     },
     {
       "type": "SYMBOL",

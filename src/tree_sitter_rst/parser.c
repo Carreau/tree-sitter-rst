@@ -1741,6 +1741,16 @@ static bool parse_text(RSTScanner* scanner, bool mark_end)
   if (is_start_char(scanner->lookahead)) {
     bool was_backslash = scanner->lookahead == '\\';
     scanner->advance(scanner);
+    // Emit a distinct escape_sequence node when the parser expects one,
+    // but only when the backslash actually escapes a character (not before
+    // a newline or EOF, where RST treats the backslash as literal text).
+    if (was_backslash && valid_symbols[T_ESCAPE_SEQUENCE]
+        && !is_newline(scanner->lookahead) && scanner->lookahead != '\0') {
+      scanner->advance(scanner);
+      lexer->mark_end(lexer);
+      lexer->result_symbol = T_ESCAPE_SEQUENCE;
+      return true;
+    }
     // RST backslash escape: pull the next character into the same text
     // token so the next scanner dispatch can't read it as inline markup
     // (e.g. ``\` `` must not open interpreted text).

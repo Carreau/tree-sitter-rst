@@ -75,11 +75,15 @@ a\ **b**\ c
 
 (document [0..43]
   (paragraph [0..14]
-    (strong [0..8]))
+    (strong [0..8])
+    (escape_sequence [8..10]))
   (paragraph [16..30]
+    (escape_sequence [16..22])
     (strong [22..30]))
   (paragraph [32..43]
-    (strong [35..40])))
+    (escape_sequence [33..35])
+    (strong [35..40])
+    (escape_sequence [40..42])))
 
 ========================================
 Embedded URI reference

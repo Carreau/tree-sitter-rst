@@ -38,7 +38,8 @@ Test (27:00 minute video) *review* test
     (emphasis)
     (emphasis))
   (paragraph
-    (emphasis))
+    (emphasis)
+    (escape_sequence))
   (paragraph
     (emphasis))
   (paragraph
@@ -211,7 +212,7 @@ Edge cases:
   (paragraph)
   (field_list
     (field
-      (field_name (interpreted_text))
+      (field_name (escape_sequence) (interpreted_text))
       (field_body (paragraph)))))
 
 =======================================================
@@ -334,7 +335,8 @@ I'm in (|parenthesis|)
  (paragraph
   (substitution_reference))
  (paragraph
-  (substitution_reference))
+  (substitution_reference)
+  (escape_sequence))
  (paragraph
   (substitution_reference))
  (paragraph
@@ -375,7 +377,8 @@ I'm in (_`parenthesis`)
   (paragraph
     (inline_target))
   (paragraph
-    (inline_target))
+    (inline_target)
+    (escape_sequence))
   (paragraph
     (inline_target))
   (paragraph
@@ -405,7 +408,8 @@ I'm a [1]_
   (paragraph
     (footnote_reference))
   (paragraph
-    (footnote_reference)))
+    (footnote_reference)
+    (escape_sequence)))
 
 ===================
 Citation references
@@ -432,7 +436,8 @@ Not [a--citation] citation.
   (paragraph
     (citation_reference))
   (paragraph
-    (citation_reference))
+    (citation_reference)
+    (escape_sequence))
   (paragraph))
 
 ====================
@@ -470,7 +475,8 @@ lonely__
     (reference))
   (paragraph
     (reference
-      (name)))
+      (name))
+    (escape_sequence))
   (paragraph
     (reference)
     (reference))
@@ -563,7 +569,12 @@ This isn't a standalone_hyperlink "http:"
   (paragraph (standalone_hyperlink))
   (paragraph (standalone_hyperlink))
   (paragraph (standalone_hyperlink))
-  (paragraph (standalone_hyperlink))
+  (paragraph
+   (standalone_hyperlink)
+   (escape_sequence)
+   (escape_sequence)
+   (escape_sequence)
+   (escape_sequence))
   (paragraph
    (standalone_hyperlink)
    (standalone_hyperlink)
@@ -594,6 +605,29 @@ Chinese double quote: I'm in “*double quotes*”
   (paragraph
     (emphasis)))
 
+================
+Escape sequences
+================
+
+Plain backslash escape: \A
+
+Escaped backslash: \\
+
+Escaped space (backslash-space separator): word\ next
+
+Backslash before newline is not an escape: foo\
+
+---
+
+(document
+  (paragraph
+    (escape_sequence))
+  (paragraph
+    (escape_sequence))
+  (paragraph
+    (escape_sequence))
+  (paragraph))
+
 ==========================================
 Backslash-escaped inline markup start char
 ==========================================
@@ -609,12 +643,18 @@ Use \`x\` and `real` here.
 ---
 
 (document
-  (paragraph)
   (paragraph
+    (escape_sequence)
+    (escape_sequence))
+  (paragraph
+    (escape_sequence)
     (interpreted_text))
   (paragraph
+    (escape_sequence)
+    (escape_sequence)
     (interpreted_text))
   (paragraph
+    (escape_sequence)
     (interpreted_text)))
 
 =========================
@@ -631,8 +671,12 @@ a\ **b**\ c
 
 (document
   (paragraph
+    (strong)
+    (escape_sequence))
+  (paragraph
+    (escape_sequence)
     (strong))
   (paragraph
-    (strong))
-  (paragraph
-    (strong)))
+    (escape_sequence)
+    (strong)
+    (escape_sequence)))
