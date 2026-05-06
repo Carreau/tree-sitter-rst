@@ -224,9 +224,20 @@ module.exports = grammar({
     - One
     - Two
 
+    Note: a `_blankline` is allowed *between* list items, so a single
+    bullet_list can span items separated by a blank line. A blank line
+    followed by a non-list construct, or a different bullet character,
+    will still terminate the list (producing separate list nodes in the
+    tree).
     */
     bullet_list: $ => repeat1(
-      alias($._bullet_list_item, $.list_item),
+      choice(
+        seq(
+          alias($._bullet_list_item, $.list_item),
+          $._blankline,
+        ),
+        alias($._bullet_list_item, $.list_item),
+      ),
     ),
 
     _bullet_list_item: $ => seq(
@@ -246,7 +257,13 @@ module.exports = grammar({
 
     */
     enumerated_list: $ => repeat1(
-      alias($._numeric_list_item, $.list_item),
+      choice(
+        seq(
+          alias($._numeric_list_item, $.list_item),
+          $._blankline,
+        ),
+        alias($._numeric_list_item, $.list_item),
+      ),
     ),
 
     _numeric_list_item: $ => seq(
@@ -275,7 +292,13 @@ module.exports = grammar({
 
     */
     definition_list: $ => repeat1(
-      alias($._definition_list_item, $.list_item),
+      choice(
+        seq(
+          alias($._definition_list_item, $.list_item),
+          $._blankline,
+        ),
+        alias($._definition_list_item, $.list_item),
+      ),
     ),
 
     _definition_list_item: $ => seq(
@@ -308,7 +331,15 @@ module.exports = grammar({
     :Indentation: Since the field marker may be quite long, the second
       and subsequent lines of the field body do not have to line up.
     */
-    field_list: $ => repeat1($.field),
+    field_list: $ => repeat1(
+      choice(
+        seq(
+          $.field,
+          $._blankline,
+        ),
+        $.field,
+      ),
+    ),
 
     field: $ => seq(
       alias($._field_mark, ':'),
