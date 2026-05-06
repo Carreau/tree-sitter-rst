@@ -198,10 +198,31 @@ static bool parse_underline(RSTScanner* scanner)
     return parse_text(scanner, false);
   }
 
+  // ``::`` on its own line is the literal-block marker, not a section
+  // underline. The spec requires the underline to be at least as long as
+  // the title text, and a two-character ``::`` is much more often a literal
+  // block marker than a one- or two-letter title's adornment. Hand the token
+  // off to ``parse_innner_literal_block_mark`` if the parser is willing to
+  // accept it. Without this check ``parse_underline`` greedily consumes the
+  // ``::`` and the indented block that follows is parsed as a block_quote
+  // (#27).
   // Transitions need to be at least 4 chars long
   if (underline_length >= 4 && valid_symbols[T_TRANSITION]) {
     lexer->result_symbol = T_TRANSITION;
     return true;
+  }
+
+  // ``::`` on its own line is the literal-block marker, not a section
+  // underline. The spec requires the underline to be at least as long as the
+  // title text, and ``::`` only matches a one- or two-character title --
+  // which essentially never appears in real documents, while the literal
+  // block reading is everywhere. Refuse the underline so the parser doesn't
+  // commit the preceding line to a title (#27). The subsequent indented
+  // block still ends up inside the paragraph rather than a literal_block,
+  // but that's a downstream limitation -- the structural fix here is what
+  // unblocks correct section nesting.
+  if (adornment == ':' && underline_length == 2) {
+    return false;
   }
 
   if (underline_length >= 1 && valid_symbols[T_UNDERLINE]) {
