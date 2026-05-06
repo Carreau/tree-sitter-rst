@@ -1544,7 +1544,14 @@ static bool parse_text(RSTScanner* scanner, bool mark_end)
   }
 
   if (is_start_char(scanner->lookahead)) {
+    bool was_backslash = scanner->lookahead == '\\';
     scanner->advance(scanner);
+    // RST backslash escape: pull the next character into the same text
+    // token so the next scanner dispatch can't read it as inline markup
+    // (e.g. ``\` `` must not open interpreted text).
+    if (was_backslash && !is_newline(scanner->lookahead)) {
+      scanner->advance(scanner);
+    }
   } else {
     while (!is_space(scanner->lookahead)) {
       if (is_start_char(scanner->lookahead)) {
