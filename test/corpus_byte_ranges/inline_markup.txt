@@ -62,6 +62,29 @@ See `link <http://example.com>`_.
       (uri [11..29]))))
 
 ========================================
+Backslash-escaped inline markup start char
+========================================
+
+A \`backtick\` here.
+
+A \`foo with `bar` later.
+
+Use \`x\` and `real` here.
+
+\*not emphasis\* but `real`.
+
+---
+
+(document [0..105]
+  (paragraph [0..20])
+  (paragraph [22..47]
+    (interpreted_text [35..40]))
+  (paragraph [49..75]
+    (interpreted_text [63..69]))
+  (paragraph [77..105]
+    (interpreted_text [98..104])))
+
+========================================
 Backslash-space separator
 ========================================
 
