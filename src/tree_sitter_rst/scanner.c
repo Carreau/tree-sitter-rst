@@ -125,7 +125,6 @@ static bool rst_scanner_check_classifier_indent(RSTScanner* scanner)
   // always non-negative; back() returns 0 on an empty stack, which matches
   // a top-level (column 0) scope. Assert this so a future refactor that
   // pushes a sentinel/negative value would fail loudly in debug builds.
-  assert(scanner->length >= 0);
   assert(scanner->back(scanner) >= 0);
   // mark_end at the current position so we emit a zero-width token.
   lexer->mark_end(lexer);

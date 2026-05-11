@@ -219,7 +219,7 @@ static bool parse_underline(RSTScanner* scanner)
   // underline. The spec requires the underline to be at least as long as
   // the title text, and a two-character ``::`` is much more often a literal
   // block marker than a one- or two-letter title's adornment. Hand the token
-  // off to ``parse_innner_literal_block_mark`` if the parser is willing to
+  // off to ``parse_inner_literal_block_mark`` if the parser is willing to
   // accept it. Without this check ``parse_underline`` greedily consumes the
   // ``::`` and the indented block that follows is parsed as a block_quote
   // (#27).
@@ -335,7 +335,7 @@ static bool fallback_adornment(RSTScanner* scanner, int32_t adornment, int adorn
       if (adornment_length == 2
           && adornment == ':'
           && (valid_symbols[T_LITERAL_INDENTED_BLOCK_MARK] || valid_symbols[T_LITERAL_QUOTED_BLOCK_MARK])) {
-        return parse_innner_literal_block_mark(scanner);
+        return parse_inner_literal_block_mark(scanner);
       }
     } else {
       if (adornment == '*' && valid_symbols[T_STRONG]) {
@@ -933,10 +933,10 @@ static bool parse_literal_block_mark(RSTScanner* scanner)
 
   scanner->advance(scanner);
 
-  return parse_innner_literal_block_mark(scanner);
+  return parse_inner_literal_block_mark(scanner);
 }
 
-static bool parse_innner_literal_block_mark(RSTScanner* scanner)
+static bool parse_inner_literal_block_mark(RSTScanner* scanner)
 {
   const bool* valid_symbols = scanner->valid_symbols;
   TSLexer* lexer = scanner->lexer;
@@ -1017,10 +1017,6 @@ static bool parse_quoted_literal_block(RSTScanner* scanner)
     int indent = get_indent_level(scanner);
     if (indent != current_indent || scanner->lookahead != adornment) {
       break;
-    }
-
-    if (scanner->lookahead != adornment) {
-      return parse_text(scanner, false);
     }
   }
   lexer->result_symbol = T_QUOTED_LITERAL_BLOCK;
