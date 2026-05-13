@@ -292,14 +292,16 @@ static bool fallback_adornment(RSTScanner* scanner, int32_t adornment, int adorn
       if (adornment == '`' && (valid_symbols[T_INTERPRETED_TEXT] || valid_symbols[T_INTERPRETED_TEXT_PREFIX])) {
         return parse_inner_inline_markup(scanner, IM_INTERPRETED_TEXT | IM_INTERPRETED_TEXT_PREFIX);
       }
-      if (adornment == '|' && valid_symbols[T_SUBSTITUTION_REFERENCE]) {
-        return parse_inner_inline_markup(scanner, IM_SUBSTITUTION_REFERENCE);
+      if (adornment == '|' && valid_symbols[T_SUBSTITUTION_OPEN]) {
+        return parse_substitution_open_inner(scanner);
       }
-      if (adornment == '_' && scanner->lookahead == '`' && valid_symbols[T_INLINE_TARGET]) {
-        return parse_inner_inline_markup(scanner, IM_INLINE_TARGET);
+      if (adornment == '_' && scanner->lookahead == '`' && valid_symbols[T_INLINE_TARGET_OPEN]) {
+        scanner->advance(scanner); // consume '`'
+        scanner->lexer->mark_end(scanner->lexer);
+        return parse_inline_target_open_inner(scanner);
       }
-      if (adornment == '[' && (valid_symbols[T_FOOTNOTE_REFERENCE] || valid_symbols[T_CITATION_REFERENCE])) {
-        return parse_inner_inline_markup(scanner, IM_FOOTNOTE_REFERENCE | IM_CITATION_REFERENCE);
+      if (adornment == '[' && (valid_symbols[T_FOOTNOTE_REFERENCE_OPEN] || valid_symbols[T_CITATION_REFERENCE_OPEN])) {
+        return parse_label_open_inner(scanner);
       }
       if (adornment == '#'
           && (scanner->lookahead == '.' || scanner->lookahead == ')')) {
@@ -344,11 +346,11 @@ static bool fallback_adornment(RSTScanner* scanner, int32_t adornment, int adorn
       if (adornment == '`' && valid_symbols[T_LITERAL]) {
         return parse_inner_inline_markup(scanner, IM_LITERAL);
       }
-      if (adornment == '|' && valid_symbols[T_SUBSTITUTION_REFERENCE]) {
-        return parse_inner_inline_markup(scanner, IM_SUBSTITUTION_REFERENCE);
+      if (adornment == '|' && valid_symbols[T_SUBSTITUTION_OPEN]) {
+        return parse_substitution_open_inner(scanner);
       }
-      if (adornment == '[' && (valid_symbols[T_FOOTNOTE_REFERENCE] || valid_symbols[T_CITATION_REFERENCE])) {
-        return parse_inner_inline_markup(scanner, IM_FOOTNOTE_REFERENCE | IM_CITATION_REFERENCE);
+      if (adornment == '[' && (valid_symbols[T_FOOTNOTE_REFERENCE_OPEN] || valid_symbols[T_CITATION_REFERENCE_OPEN])) {
+        return parse_label_open_inner(scanner);
       }
     }
   }
@@ -441,7 +443,7 @@ static bool parse_inner_numeric_bullet(RSTScanner* scanner, bool parenthesized)
     if (is_abc(scanner->lookahead) && valid_symbols[T_STANDALONE_HYPERLINK]) {
       return parse_inner_standalone_hyperlink(scanner);
     }
-    if (is_alphanumeric(scanner->lookahead) && valid_symbols[T_REFERENCE]) {
+    if (is_alphanumeric(scanner->lookahead) && valid_symbols[T_REFERENCE_BARE_NAME]) {
       return parse_reference(scanner);
     }
     if (valid_symbols[T_TEXT]) {
@@ -901,13 +903,29 @@ static bool parse_substitution_mark(RSTScanner* scanner)
   scanner->advance(scanner);
 
   if (!is_space(scanner->lookahead)) {
-    bool ok = parse_inner_inline_markup(scanner, IM_SUBSTITUTION_REFERENCE);
-    if (ok
-        && lexer->result_symbol == T_SUBSTITUTION_REFERENCE
-        && is_space(scanner->lookahead)
-        && !is_newline(scanner->lookahead)) {
-      lexer->result_symbol = T_SUBSTITUTION_MARK;
-      return true;
+    // Scan forward to find a closing '|' that is immediately followed by
+    // inline whitespace.  The substitution name may itself contain '|' (e.g.
+    // |bio|hazard|), so we skip any '|' whose next character is not inline
+    // space and keep looking for the real close.
+    int consumed = 0;
+    while (scanner->lookahead != CHAR_EOF && !is_newline(scanner->lookahead)) {
+      if (scanner->lookahead == '|') {
+        if (consumed > 0 && !is_space(scanner->previous)) {
+          // Peek at the char after this '|'.
+          scanner->advance(scanner); // consume '|'
+          if (is_inline_space(scanner->lookahead)) {
+            lexer->mark_end(lexer);
+            lexer->result_symbol = T_SUBSTITUTION_MARK;
+            return true;
+          }
+          // Not inline space after '|' — embedded '|' in the name; continue.
+          consumed++;
+          continue;
+        }
+        return false;
+      }
+      scanner->advance(scanner);
+      consumed++;
     }
   }
   return false;
@@ -1112,16 +1130,18 @@ static bool parse_inline_markup(RSTScanner* scanner)
     type = IM_LITERAL;
   } else if (scanner->previous == '`' && (valid_symbols[T_INTERPRETED_TEXT] || valid_symbols[T_INTERPRETED_TEXT_PREFIX])) {
     type = IM_INTERPRETED_TEXT | IM_INTERPRETED_TEXT_PREFIX;
-  } else if (scanner->previous == '|' && valid_symbols[T_SUBSTITUTION_REFERENCE]) {
-    type = IM_SUBSTITUTION_REFERENCE;
-  } else if (scanner->previous == '_' && scanner->lookahead == '`' && valid_symbols[T_INLINE_TARGET]) {
-    type = IM_INLINE_TARGET;
-  } else if (scanner->previous == '[' && (valid_symbols[T_FOOTNOTE_REFERENCE] || valid_symbols[T_CITATION_REFERENCE])) {
-    type = IM_FOOTNOTE_REFERENCE | IM_CITATION_REFERENCE;
+  } else if (scanner->previous == '|' && valid_symbols[T_SUBSTITUTION_OPEN]) {
+    return parse_substitution_open_inner(scanner);
+  } else if (scanner->previous == '_' && scanner->lookahead == '`' && valid_symbols[T_INLINE_TARGET_OPEN]) {
+    scanner->advance(scanner); // consume '`'
+    lexer->mark_end(lexer); // mark_end after '_`'
+    return parse_inline_target_open_inner(scanner);
+  } else if (scanner->previous == '[' && (valid_symbols[T_FOOTNOTE_REFERENCE_OPEN] || valid_symbols[T_CITATION_REFERENCE_OPEN])) {
+    return parse_label_open_inner(scanner);
   }
 
   // Skip one char for tokens that start with a double char
-  if (type & (IM_STRONG | IM_LITERAL | IM_INLINE_TARGET)) {
+  if (type & (IM_STRONG | IM_LITERAL)) {
     scanner->advance(scanner);
   }
 
@@ -1159,27 +1179,6 @@ static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type)
   // `\`_` / `\`__` we emit T_REFERENCE_OPEN_BACKTICK with that span.
   bool reference_possible = valid_symbols[T_REFERENCE_OPEN_BACKTICK]
       && (type & (IM_INTERPRETED_TEXT | IM_INTERPRETED_TEXT_PREFIX));
-
-  if (type & IM_FOOTNOTE_REFERENCE || type & IM_CITATION_REFERENCE) {
-    unsigned final_type = parse_inner_label_name(scanner);
-    if ((final_type == IM_FOOTNOTE_REFERENCE && type & IM_FOOTNOTE_REFERENCE)
-        || (final_type == IM_CITATION_REFERENCE && type & IM_CITATION_REFERENCE)) {
-      scanner->advance(scanner);
-      if (scanner->lookahead == '_') {
-        scanner->advance(scanner);
-        if (is_space(scanner->lookahead) || is_end_char(scanner->lookahead)) {
-          lexer->mark_end(lexer);
-          if (final_type == IM_CITATION_REFERENCE) {
-            lexer->result_symbol = T_CITATION_REFERENCE;
-          } else if (final_type == IM_FOOTNOTE_REFERENCE) {
-            lexer->result_symbol = T_FOOTNOTE_REFERENCE;
-          }
-          return true;
-        }
-      }
-    }
-    return parse_text(scanner, false);
-  }
 
   while (scanner->lookahead != CHAR_EOF) {
     // Skip indentation
@@ -1248,8 +1247,6 @@ static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type)
           scanner->advance(scanner);
           consumed_chars++;
         }
-      } else if ((type & IM_INLINE_TARGET) && scanner->previous == '`') {
-        lexer->result_symbol = T_INLINE_TARGET;
       } else if ((type & IM_INTERPRETED_TEXT || type & IM_INTERPRETED_TEXT_PREFIX) && scanner->previous == '`') {
         // `\`text\`_` / `\`text\`__` -- emit just the opening backtick as
         // T_REFERENCE_OPEN_BACKTICK so the name / URI / end mark can be
@@ -1275,15 +1272,6 @@ static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type)
           is_valid = false;
         } else {
           lexer->result_symbol = T_INTERPRETED_TEXT;
-        }
-      } else if ((type & IM_SUBSTITUTION_REFERENCE) && scanner->previous == '|') {
-        lexer->result_symbol = T_SUBSTITUTION_REFERENCE;
-        // Substitution references can end with '__'.
-        if (scanner->lookahead == '_') {
-          scanner->advance(scanner);
-          if (scanner->lookahead == '_') {
-            advance = true;
-          }
         }
       } else {
         is_valid = false;
@@ -1312,25 +1300,507 @@ static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type)
   return parse_text(scanner, false);
 }
 
-static bool parse_reference(RSTScanner* scanner)
-{
-  const bool* valid_symbols = scanner->valid_symbols;
+// ---------------------------------------------------------------------------
+// substitution_reference sub-tokens
+// ---------------------------------------------------------------------------
 
-  if (is_space(scanner->lookahead) || is_internal_reference_char(scanner->lookahead) || !valid_symbols[T_REFERENCE]) {
+// Called after '|' is already consumed and mark_end is set to after '|'.
+// Speculatively scans to verify a valid close '|' exists, then returns
+// T_SUBSTITUTION_OPEN with the span covering only the opening '|'.
+// The function speculatively scans forward to verify a valid close '|'
+// exists, but the token boundary was already set by the caller (via
+// mark_end after consuming '|'), so the speculative advances do not
+// extend the token.
+//
+// IMPORTANT: When this function returns false, it restores
+// scanner->lookahead and scanner->previous to their pre-scan values.
+// This is necessary because the function is also called from
+// fallback_adornment (inside parse_overline/parse_underline), and
+// those callers inspect scanner->lookahead after the call returns.  If
+// we leave scanner->lookahead at the end of the speculative scan (e.g.
+// at '\n'), the is_space() guards in parse_underline will fire
+// incorrectly and emit a spurious T_UNDERLINE token.
+static bool parse_substitution_open_inner(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  if (!scanner->valid_symbols[T_SUBSTITUTION_OPEN]) {
     return false;
   }
-  scanner->advance(scanner);
-  return parse_inner_reference(scanner);
+  if (is_space(scanner->lookahead)) {
+    return false; // substitution content can't start with whitespace
+  }
+  // Save scanner-level state so we can restore on failure.
+  int32_t saved_lookahead = scanner->lookahead;
+  int32_t saved_previous = scanner->previous;
+  // Speculatively scan for a valid closing '|'.
+  int consumed = 0;
+  bool is_escaped = false;
+  while (scanner->lookahead != CHAR_EOF) {
+    if (is_newline(scanner->lookahead)) {
+      scanner->advance(scanner);
+      int indent = get_indent_level(scanner);
+      if (indent != scanner->back(scanner) || is_newline(scanner->lookahead)) {
+        scanner->lookahead = saved_lookahead;
+        scanner->previous = saved_previous;
+        return false;
+      }
+      is_escaped = false;
+      continue;
+    }
+    if (!is_escaped && scanner->lookahead == '|') {
+      // Valid close found (must not end with whitespace).
+      if (consumed > 0 && !is_space(scanner->previous)) {
+        lexer->result_symbol = T_SUBSTITUTION_OPEN;
+        return true;
+      }
+      scanner->lookahead = saved_lookahead;
+      scanner->previous = saved_previous;
+      return false;
+    }
+    if (scanner->lookahead == '\\') {
+      is_escaped = !is_escaped;
+    } else {
+      is_escaped = false;
+    }
+    scanner->advance(scanner);
+    consumed++;
+  }
+  scanner->lookahead = saved_lookahead;
+  scanner->previous = saved_previous;
+  return false;
 }
 
+// Reads the substitution name (the text between the pipes).  Called after
+// T_SUBSTITUTION_OPEN: scanner is positioned at the first name character.
+static bool parse_substitution_name(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  if (!scanner->valid_symbols[T_SUBSTITUTION_NAME]) {
+    return false;
+  }
+  // Sync scanner->lookahead: the preceding speculative scan in
+  // parse_substitution_open_inner may have left scanner->lookahead stale.
+  scanner->lookahead = lexer->lookahead;
+  int consumed = 0;
+  bool word_found = false;
+  while (scanner->lookahead != CHAR_EOF) {
+    if (is_newline(scanner->lookahead)) {
+      if (!word_found) {
+        word_found = true;
+        lexer->mark_end(lexer);
+      }
+      scanner->advance(scanner);
+      int indent = get_indent_level(scanner);
+      if (indent != scanner->back(scanner) || is_newline(scanner->lookahead)) {
+        return false;
+      }
+      continue;
+    }
+    if (scanner->lookahead == '|') {
+      if (consumed > 0 && !is_space(scanner->previous)) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = T_SUBSTITUTION_NAME;
+        return true;
+      }
+      return false;
+    }
+    if (!word_found && is_space(scanner->lookahead)) {
+      word_found = true;
+      lexer->mark_end(lexer);
+    }
+    scanner->advance(scanner);
+    consumed++;
+  }
+  return false;
+}
+
+// Reads the closing '|' and any trailing '_' or '__' (hyperlink suffix).
+static bool parse_substitution_close(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  // Sync stale scanner->lookahead from the actual lexer position.
+  scanner->lookahead = lexer->lookahead;
+  if (scanner->lookahead != '|' || !scanner->valid_symbols[T_SUBSTITUTION_CLOSE]) {
+    return false;
+  }
+  scanner->advance(scanner); // consume '|'
+  // Consume optional trailing '_' / '__' (|name|_ or |name|__).
+  if (scanner->lookahead == '_') {
+    scanner->advance(scanner);
+    if (scanner->lookahead == '_') {
+      scanner->advance(scanner);
+    }
+  }
+  if (is_space(scanner->lookahead) || is_end_char(scanner->lookahead)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = T_SUBSTITUTION_CLOSE;
+    return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// inline_target sub-tokens
+// ---------------------------------------------------------------------------
+
+// Called after '_`' is already consumed and mark_end is set to after '_`'.
+// Speculatively verifies a valid closing '`' exists, then returns
+// T_INLINE_TARGET_OPEN.
+// Saves and restores scanner->lookahead/previous on failure for the same
+// reason as parse_substitution_open_inner (see its comment).
+static bool parse_inline_target_open_inner(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  if (!scanner->valid_symbols[T_INLINE_TARGET_OPEN]) {
+    return false;
+  }
+  if (is_space(scanner->lookahead)) {
+    return false;
+  }
+  int32_t saved_lookahead = scanner->lookahead;
+  int32_t saved_previous = scanner->previous;
+  // Speculatively scan for the closing backtick.
+  bool is_escaped = false;
+  int consumed = 0;
+  while (scanner->lookahead != CHAR_EOF) {
+    if (is_newline(scanner->lookahead)) {
+      scanner->advance(scanner);
+      int indent = get_indent_level(scanner);
+      if (indent != scanner->back(scanner) || is_newline(scanner->lookahead)) {
+        scanner->lookahead = saved_lookahead;
+        scanner->previous = saved_previous;
+        return false;
+      }
+      is_escaped = false;
+      continue;
+    }
+    if (!is_escaped && scanner->lookahead == '`') {
+      if (consumed > 0 && !is_space(scanner->previous)) {
+        lexer->result_symbol = T_INLINE_TARGET_OPEN;
+        return true;
+      }
+      scanner->lookahead = saved_lookahead;
+      scanner->previous = saved_previous;
+      return false;
+    }
+    if (scanner->lookahead == '\\') {
+      is_escaped = !is_escaped;
+    } else {
+      is_escaped = false;
+    }
+    scanner->advance(scanner);
+    consumed++;
+  }
+  scanner->lookahead = saved_lookahead;
+  scanner->previous = saved_previous;
+  return false;
+}
+
+// Reads the inline target name between '_`' and '`'.
+static bool parse_inline_target_name(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  if (!scanner->valid_symbols[T_INLINE_TARGET_NAME]) {
+    return false;
+  }
+  // Sync stale scanner->lookahead from the actual lexer position.
+  scanner->lookahead = lexer->lookahead;
+  int consumed = 0;
+  bool is_escaped = false;
+  while (scanner->lookahead != CHAR_EOF) {
+    if (is_newline(scanner->lookahead)) {
+      scanner->advance(scanner);
+      int indent = get_indent_level(scanner);
+      if (indent != scanner->back(scanner) || is_newline(scanner->lookahead)) {
+        return false;
+      }
+      is_escaped = false;
+      continue;
+    }
+    if (!is_escaped && scanner->lookahead == '`') {
+      if (consumed > 0 && !is_space(scanner->previous)) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = T_INLINE_TARGET_NAME;
+        return true;
+      }
+      return false;
+    }
+    if (scanner->lookahead == '\\') {
+      is_escaped = !is_escaped;
+    } else {
+      is_escaped = false;
+    }
+    scanner->advance(scanner);
+    consumed++;
+  }
+  return false;
+}
+
+// Reads the closing backtick of an inline target.
+static bool parse_inline_target_close(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  // Sync stale scanner->lookahead from the actual lexer position.
+  scanner->lookahead = lexer->lookahead;
+  if (scanner->lookahead != '`' || !scanner->valid_symbols[T_INLINE_TARGET_CLOSE]) {
+    return false;
+  }
+  scanner->advance(scanner); // consume '`'
+  lexer->mark_end(lexer);
+  lexer->result_symbol = T_INLINE_TARGET_CLOSE;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// citation_reference and footnote_reference sub-tokens
+// ---------------------------------------------------------------------------
+
+// Called after '[' is already consumed and mark_end is set to after '['.
+// Reads ahead to classify the content and verify the ']_' close, then emits
+// either T_CITATION_REFERENCE_OPEN or T_FOOTNOTE_REFERENCE_OPEN.
+static bool parse_label_open_inner(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  bool want_citation = scanner->valid_symbols[T_CITATION_REFERENCE_OPEN];
+  bool want_footnote = scanner->valid_symbols[T_FOOTNOTE_REFERENCE_OPEN];
+  if (!want_citation && !want_footnote) {
+    return false;
+  }
+  // parse_inner_label_name advances through the label content and leaves
+  // scanner->lookahead at ']' if successful.
+  unsigned type = parse_inner_label_name(scanner);
+  if (type == IM_NONE) {
+    return parse_text(scanner, false);
+  }
+  // Verify the closing ']_'.
+  if (scanner->lookahead != ']') {
+    return parse_text(scanner, false);
+  }
+  scanner->advance(scanner); // past ']'
+  if (scanner->lookahead != '_') {
+    return parse_text(scanner, false);
+  }
+  scanner->advance(scanner); // past '_'
+  if (!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead)) {
+    return parse_text(scanner, false);
+  }
+  if (type == IM_CITATION_REFERENCE && want_citation) {
+    lexer->result_symbol = T_CITATION_REFERENCE_OPEN;
+    return true;
+  }
+  if (type == IM_FOOTNOTE_REFERENCE && want_footnote) {
+    lexer->result_symbol = T_FOOTNOTE_REFERENCE_OPEN;
+    return true;
+  }
+  return false;
+}
+
+// Reads the citation label text (alphanumeric, no brackets).
+static bool parse_citation_reference_label(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  if (!scanner->valid_symbols[T_CITATION_REFERENCE_LABEL]) {
+    return false;
+  }
+  // Sync stale scanner->lookahead from the actual lexer position.
+  scanner->lookahead = lexer->lookahead;
+  bool ok = parse_inner_alphanumeric_label(scanner);
+  if (!ok || scanner->lookahead != ']') {
+    return false;
+  }
+  lexer->mark_end(lexer); // mark before ']'
+  lexer->result_symbol = T_CITATION_REFERENCE_LABEL;
+  return true;
+}
+
+// Reads the footnote label text: digits, '#', '#name', or '*'.
+static bool parse_footnote_reference_label(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  if (!scanner->valid_symbols[T_FOOTNOTE_REFERENCE_LABEL]) {
+    return false;
+  }
+  // Sync stale scanner->lookahead from the actual lexer position.
+  scanner->lookahead = lexer->lookahead;
+  if (scanner->lookahead == '*') {
+    scanner->advance(scanner);
+    if (scanner->lookahead != ']') {
+      return false;
+    }
+    lexer->mark_end(lexer);
+    lexer->result_symbol = T_FOOTNOTE_REFERENCE_LABEL;
+    return true;
+  }
+  if (scanner->lookahead == '#') {
+    scanner->advance(scanner);
+    if (scanner->lookahead == ']') {
+      lexer->mark_end(lexer);
+      lexer->result_symbol = T_FOOTNOTE_REFERENCE_LABEL;
+      return true;
+    }
+    if (is_alphanumeric(scanner->lookahead)) {
+      bool ok = parse_inner_alphanumeric_label(scanner);
+      if (!ok || scanner->lookahead != ']') {
+        return false;
+      }
+      lexer->mark_end(lexer);
+      lexer->result_symbol = T_FOOTNOTE_REFERENCE_LABEL;
+      return true;
+    }
+    return false;
+  }
+  if (is_number(scanner->lookahead)) {
+    while (is_number(scanner->lookahead)) {
+      scanner->advance(scanner);
+    }
+    if (scanner->lookahead != ']') {
+      return false;
+    }
+    lexer->mark_end(lexer);
+    lexer->result_symbol = T_FOOTNOTE_REFERENCE_LABEL;
+    return true;
+  }
+  return false;
+}
+
+// Reads the shared ']_' close for both citation and footnote references.
+static bool parse_reference_label_close(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  // Sync stale scanner->lookahead from the actual lexer position.
+  scanner->lookahead = lexer->lookahead;
+  if (scanner->lookahead != ']'
+      || (!scanner->valid_symbols[T_REFERENCE_LABEL_CLOSE])) {
+    return false;
+  }
+  scanner->advance(scanner); // consume ']'
+  if (scanner->lookahead != '_') {
+    return false;
+  }
+  scanner->advance(scanner); // consume '_'
+  lexer->mark_end(lexer);
+  lexer->result_symbol = T_REFERENCE_LABEL_CLOSE;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// bare reference sub-tokens
+// ---------------------------------------------------------------------------
+
+// Emits T_REFERENCE_BARE_NAME: the alphanumeric portion of a bare reference,
+// stopping just before the trailing '_' or '__'.  mark_end is set to the
+// position right before the first character of the trailing mark, so that
+// tree-sitter rewinds there for the next T_REFERENCE_BARE_MARK call.
+//
+// Strategy: every time we advance past a '_' that could be an internal
+// separator, we first call mark_end (capturing everything up to but not
+// including that '_').  If we later verify the trailing mark pattern, the
+// last such mark_end is the correct name boundary.
+static bool parse_reference_bare_name(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  if (!scanner->valid_symbols[T_REFERENCE_BARE_NAME]) {
+    return false;
+  }
+  // Sync scanner->lookahead with the authoritative lexer position; this
+  // function may be called from the top-level scan dispatch before any
+  // scanner->advance has been issued in this scan round.
+  scanner->lookahead = lexer->lookahead;
+  if (is_space(scanner->lookahead) || is_internal_reference_char(scanner->lookahead)
+      || is_start_char(scanner->lookahead) || is_end_char(scanner->lookahead)) {
+    return false;
+  }
+
+  scanner->advance(scanner); // consume first alphanumeric char
+  bool internal_symbol = is_internal_reference_char(scanner->previous);
+  bool is_word = false;
+
+  while ((!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead))
+      || is_internal_reference_char(scanner->lookahead)) {
+    if (scanner->lookahead == CHAR_EOF) {
+      break;
+    }
+    if (is_start_char(scanner->lookahead) && !is_word) {
+      is_word = true;
+    }
+    if (is_internal_reference_char(scanner->lookahead)) {
+      if (internal_symbol) {
+        break; // two consecutive internal chars
+      }
+      internal_symbol = true;
+      if (scanner->lookahead == '_') {
+        // This '_' could be the trailing mark; record the name boundary.
+        lexer->mark_end(lexer);
+      }
+    } else {
+      internal_symbol = false;
+    }
+    scanner->advance(scanner);
+  }
+
+  // Handle anonymous references: two consecutive '_' exit the loop above via
+  // the "two consecutive internal chars" break.  Advance past the second '_'.
+  if (scanner->lookahead == '_' && scanner->previous == '_') {
+    scanner->advance(scanner);
+  }
+
+  // Must end with '_' followed by whitespace or end punctuation.
+  if (scanner->previous != '_'
+      || (!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead))) {
+    return parse_text(scanner, !is_word);
+  }
+
+  // mark_end was set just before the trailing '_' (or the first '_' of '__').
+  lexer->result_symbol = T_REFERENCE_BARE_NAME;
+  return true;
+}
+
+// Emits T_REFERENCE_BARE_MARK: '_' or '__'.
+static bool parse_reference_bare_mark(RSTScanner* scanner)
+{
+  TSLexer* lexer = scanner->lexer;
+  // Sync scanner->lookahead; may be stale if called from top-level dispatch.
+  scanner->lookahead = lexer->lookahead;
+  if (scanner->lookahead != '_' || !scanner->valid_symbols[T_REFERENCE_BARE_MARK]) {
+    return false;
+  }
+  scanner->advance(scanner); // consume first '_'
+  if (scanner->lookahead == '_') {
+    scanner->advance(scanner); // consume second '_' for anonymous
+  }
+  if (is_space(scanner->lookahead) || is_end_char(scanner->lookahead)) {
+    lexer->mark_end(lexer);
+    lexer->result_symbol = T_REFERENCE_BARE_MARK;
+    return true;
+  }
+  return false;
+}
+
+// parse_reference is kept as a thin dispatcher used by parse_inner_numeric_bullet
+// and parse_inner_standalone_hyperlink.  When T_REFERENCE_BARE_NAME is in
+// valid_symbols the grammar is already on the bare-reference path; when it is
+// not, fall back to text so the caller can degrade gracefully.
+static bool parse_reference(RSTScanner* scanner)
+{
+  return parse_reference_bare_name(scanner);
+}
+
+// parse_inner_reference is still called by parse_inner_standalone_hyperlink
+// after the scheme has been consumed.  It replaces the old monolithic path with
+// the new bare-name scan.
 static bool parse_inner_reference(RSTScanner* scanner)
 {
   TSLexer* lexer = scanner->lexer;
 
+  // The caller has already advanced one char; replicate the internal-symbol
+  // state as the old function did.
   bool internal_symbol = is_internal_reference_char(scanner->previous);
   bool is_word = false;
-  while ((!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead)) || is_internal_reference_char(scanner->lookahead)) {
-    // Mark the end of the worl?d.
+  while ((!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead))
+      || is_internal_reference_char(scanner->lookahead)) {
+    if (scanner->lookahead == CHAR_EOF) {
+      break;
+    }
     if (is_start_char(scanner->lookahead) && !is_word) {
       is_word = true;
       lexer->mark_end(lexer);
@@ -1340,21 +1810,25 @@ static bool parse_inner_reference(RSTScanner* scanner)
         break;
       }
       internal_symbol = true;
+      if (scanner->lookahead == '_') {
+        lexer->mark_end(lexer);
+      }
     } else {
       internal_symbol = false;
     }
     scanner->advance(scanner);
   }
 
-  // Only an anonymous reference can contain
-  // and end with two consecutive '_'.
+  // Handle anonymous '__'.
   if (scanner->lookahead == '_' && scanner->previous == '_') {
     scanner->advance(scanner);
   }
 
-  if (scanner->previous == '_' && (is_space(scanner->lookahead) || is_end_char(scanner->lookahead))) {
-    lexer->mark_end(lexer);
-    lexer->result_symbol = T_REFERENCE;
+  if (scanner->previous == '_'
+      && (is_space(scanner->lookahead) || is_end_char(scanner->lookahead))) {
+    // mark_end was set in the loop before consuming '_', so the name token
+    // stops before the trailing mark. Do NOT call mark_end here.
+    lexer->result_symbol = T_REFERENCE_BARE_NAME;
     return true;
   }
 

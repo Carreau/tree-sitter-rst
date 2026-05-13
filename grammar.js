@@ -63,11 +63,25 @@ module.exports = grammar({
     $._role_name_prefix,
     $._role_name_suffix,
     $.literal,
-    $.substitution_reference,
-    $.inline_target,
-    $.footnote_reference,
-    $.citation_reference,
-    $.reference,
+    // substitution_reference sub-tokens
+    $._substitution_open,
+    $._substitution_name,
+    $._substitution_close,
+    // inline_target sub-tokens
+    $._inline_target_open,
+    $._inline_target_name,
+    $._inline_target_close,
+    // footnote_reference sub-tokens
+    $._footnote_reference_open,
+    $._footnote_reference_label,
+    // citation_reference sub-tokens
+    $._citation_reference_open,
+    $._citation_reference_label,
+    // shared close for footnote and citation references
+    $._reference_label_close,
+    // bare reference sub-tokens
+    $._reference_bare_name,
+    $._reference_bare_mark,
     $._reference_open_backtick,
     $._reference_name,
     $._embedded_uri,
@@ -740,29 +754,76 @@ module.exports = grammar({
       $.footnote_reference,
       $.citation_reference,
       $.reference,
-      alias($._backticked_reference, $.reference),
       $.standalone_hyperlink,
     ),
 
     /*
 
-    Phrase / embedded URI references:
+    |word|, |multi word|, |word|_, |word|__
+    */
+    substitution_reference: $ => seq(
+      alias($._substitution_open, '|'),
+      alias($._substitution_name, $.name),
+      alias($._substitution_close, '|'),
+    ),
 
+    /*
+
+    _`word`, _`multi word`
+    */
+    inline_target: $ => seq(
+      alias($._inline_target_open, '_`'),
+      alias($._inline_target_name, $.name),
+      alias($._inline_target_close, '`'),
+    ),
+
+    /*
+
+    [1]_, [#name]_, [#]_, [*]_
+    */
+    footnote_reference: $ => seq(
+      alias($._footnote_reference_open, '['),
+      alias($._footnote_reference_label, $.label),
+      alias($._reference_label_close, ']_'),
+    ),
+
+    /*
+
+    [CIT2020]_, [monday]_
+    */
+    citation_reference: $ => seq(
+      alias($._citation_reference_open, '['),
+      alias($._citation_reference_label, $.label),
+      alias($._reference_label_close, ']_'),
+    ),
+
+    /*
+
+    Bare and phrase/embedded-URI references:
+
+    - manual_ (bare named)
+    - text__ (bare anonymous)
     - `simple phrase`_
     - `simple phrase`__
     - `Python <http://www.python.org>`_
     - `Python <http://www.python.org>`__
     - `<http://www.example.org>`__
     */
-    _backticked_reference: $ => seq(
-      alias($._reference_open_backtick, '`'),
-      optional(alias($._reference_name, $.name)),
-      optional(seq(
-        '<',
-        alias($._embedded_uri, $.uri),
-        '>',
-      )),
-      alias($._reference_end_mark, '_'),
+    reference: $ => choice(
+      seq(
+        alias($._reference_bare_name, $.name),
+        alias($._reference_bare_mark, '_'),
+      ),
+      seq(
+        alias($._reference_open_backtick, '`'),
+        optional(alias($._reference_name, $.name)),
+        optional(seq(
+          '<',
+          alias($._embedded_uri, $.uri),
+          '>',
+        )),
+        alias($._reference_end_mark, '_'),
+      ),
     ),
 
     // Interpreted text

@@ -50,11 +50,25 @@ enum TokenType {
   T_ROLE_NAME_PREFIX,
   T_ROLE_NAME_SUFFIX,
   T_LITERAL,
-  T_SUBSTITUTION_REFERENCE,
-  T_INLINE_TARGET,
-  T_FOOTNOTE_REFERENCE,
-  T_CITATION_REFERENCE,
-  T_REFERENCE,
+  // substitution_reference sub-tokens
+  T_SUBSTITUTION_OPEN,
+  T_SUBSTITUTION_NAME,
+  T_SUBSTITUTION_CLOSE,
+  // inline_target sub-tokens
+  T_INLINE_TARGET_OPEN,
+  T_INLINE_TARGET_NAME,
+  T_INLINE_TARGET_CLOSE,
+  // footnote_reference sub-tokens
+  T_FOOTNOTE_REFERENCE_OPEN,
+  T_FOOTNOTE_REFERENCE_LABEL,
+  // citation_reference sub-tokens
+  T_CITATION_REFERENCE_OPEN,
+  T_CITATION_REFERENCE_LABEL,
+  // shared close for footnote and citation references
+  T_REFERENCE_LABEL_CLOSE,
+  // bare reference sub-tokens
+  T_REFERENCE_BARE_NAME,
+  T_REFERENCE_BARE_MARK,
   T_REFERENCE_OPEN_BACKTICK,
   T_REFERENCE_NAME,
   T_EMBEDDED_URI,
