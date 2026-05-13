@@ -1598,87 +1598,234 @@
           "name": "reference"
         },
         {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_backticked_reference"
-          },
-          "named": true,
-          "value": "reference"
-        },
-        {
           "type": "SYMBOL",
           "name": "standalone_hyperlink"
         }
       ]
     },
-    "_backticked_reference": {
+    "substitution_reference": {
       "type": "SEQ",
       "members": [
         {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
-            "name": "_reference_open_backtick"
+            "name": "_substitution_open"
           },
           "named": false,
-          "value": "`"
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "ALIAS",
-              "content": {
-                "type": "SYMBOL",
-                "name": "_reference_name"
-              },
-              "named": true,
-              "value": "name"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "<"
-                },
-                {
-                  "type": "ALIAS",
-                  "content": {
-                    "type": "SYMBOL",
-                    "name": "_embedded_uri"
-                  },
-                  "named": true,
-                  "value": "uri"
-                },
-                {
-                  "type": "STRING",
-                  "value": ">"
-                }
-              ]
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "value": "|"
         },
         {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
-            "name": "_reference_end_mark"
+            "name": "_substitution_name"
+          },
+          "named": true,
+          "value": "name"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_substitution_close"
           },
           "named": false,
-          "value": "_"
+          "value": "|"
+        }
+      ]
+    },
+    "inline_target": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_inline_target_open"
+          },
+          "named": false,
+          "value": "_`"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_inline_target_name"
+          },
+          "named": true,
+          "value": "name"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_inline_target_close"
+          },
+          "named": false,
+          "value": "`"
+        }
+      ]
+    },
+    "footnote_reference": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_footnote_reference_open"
+          },
+          "named": false,
+          "value": "["
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_footnote_reference_label"
+          },
+          "named": true,
+          "value": "label"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_reference_label_close"
+          },
+          "named": false,
+          "value": "]_"
+        }
+      ]
+    },
+    "citation_reference": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_citation_reference_open"
+          },
+          "named": false,
+          "value": "["
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_citation_reference_label"
+          },
+          "named": true,
+          "value": "label"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_reference_label_close"
+          },
+          "named": false,
+          "value": "]_"
+        }
+      ]
+    },
+    "reference": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_reference_bare_name"
+              },
+              "named": true,
+              "value": "name"
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_reference_bare_mark"
+              },
+              "named": false,
+              "value": "_"
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_reference_open_backtick"
+              },
+              "named": false,
+              "value": "`"
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_reference_name"
+                  },
+                  "named": true,
+                  "value": "name"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "<"
+                    },
+                    {
+                      "type": "ALIAS",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_embedded_uri"
+                      },
+                      "named": true,
+                      "value": "uri"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": ">"
+                    }
+                  ]
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_reference_end_mark"
+              },
+              "named": false,
+              "value": "_"
+            }
+          ]
         }
       ]
     },
@@ -1921,23 +2068,55 @@
     },
     {
       "type": "SYMBOL",
-      "name": "substitution_reference"
+      "name": "_substitution_open"
     },
     {
       "type": "SYMBOL",
-      "name": "inline_target"
+      "name": "_substitution_name"
     },
     {
       "type": "SYMBOL",
-      "name": "footnote_reference"
+      "name": "_substitution_close"
     },
     {
       "type": "SYMBOL",
-      "name": "citation_reference"
+      "name": "_inline_target_open"
     },
     {
       "type": "SYMBOL",
-      "name": "reference"
+      "name": "_inline_target_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_inline_target_close"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_footnote_reference_open"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_footnote_reference_label"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_citation_reference_open"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_citation_reference_label"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_reference_label_close"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_reference_bare_name"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_reference_bare_mark"
     },
     {
       "type": "SYMBOL",

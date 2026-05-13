@@ -346,7 +346,8 @@ I'm a quoted block:
           (paragraph)))
       (field
         (field_name
-          (substitution_reference))
+          (substitution_reference
+            (name)))
         (field_body
           (paragraph))))))
 
