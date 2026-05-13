@@ -1134,7 +1134,7 @@ static bool parse_inline_markup(RSTScanner* scanner)
     return parse_substitution_open_inner(scanner);
   } else if (scanner->previous == '_' && scanner->lookahead == '`' && valid_symbols[T_INLINE_TARGET_OPEN]) {
     scanner->advance(scanner); // consume '`'
-    lexer->mark_end(lexer);    // mark_end after '_`'
+    lexer->mark_end(lexer); // mark_end after '_`'
     return parse_inline_target_open_inner(scanner);
   } else if (scanner->previous == '[' && (valid_symbols[T_FOOTNOTE_REFERENCE_OPEN] || valid_symbols[T_CITATION_REFERENCE_OPEN])) {
     return parse_label_open_inner(scanner);
