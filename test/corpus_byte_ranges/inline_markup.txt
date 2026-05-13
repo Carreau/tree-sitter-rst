@@ -76,12 +76,18 @@ Use \`x\` and `real` here.
 ---
 
 (document [0..105]
-  (paragraph [0..20])
+  (paragraph [0..20]
+    (escape_sequence [2..4])
+    (escape_sequence [4..14]))
   (paragraph [22..47]
+    (escape_sequence [24..26])
     (interpreted_text [35..40]))
   (paragraph [49..75]
+    (escape_sequence [53..55])
+    (escape_sequence [55..58])
     (interpreted_text [63..69]))
   (paragraph [77..105]
+    (escape_sequence [83..93])
     (interpreted_text [98..104])))
 
 ========================================
@@ -161,7 +167,8 @@ Phrase reference (backticked, no URI)
   (paragraph [0..28]
     (reference [0..13]
       (name [1..11]))
-    (reference [18..22])))
+    (reference [18..22]
+      (name [18..21]))))
 
 ========================================
 Embedded URI: unclosed angle bracket
@@ -188,3 +195,211 @@ Embedded URI: missing closing angle bracket
   (paragraph [0..28]
     (reference [0..23]
       (name [1..21]))))
+
+========================================
+Substitution reference simple
+========================================
+
+|world|
+
+---
+
+(document [0..7]
+  (paragraph [0..7]
+    (substitution_reference [0..7]
+      (name [1..6]))))
+
+========================================
+Substitution reference with surrounding text
+========================================
+
+Hello |world|.
+
+---
+
+(document [0..14]
+  (paragraph [0..14]
+    (substitution_reference [6..13]
+      (name [7..12]))))
+
+========================================
+Substitution reference multi-word name
+========================================
+
+|Hello world|
+
+---
+
+(document [0..13]
+  (paragraph [0..13]
+    (substitution_reference [0..13]
+      (name [1..12]))))
+
+========================================
+Substitution reference and hyperlink
+========================================
+
+|substitution|_
+
+---
+
+(document [0..15]
+  (paragraph [0..15]
+    (substitution_reference [0..15]
+      (name [1..13]))))
+
+========================================
+Inline internal target simple
+========================================
+
+_`world`
+
+---
+
+(document [0..8]
+  (paragraph [0..8]
+    (inline_target [0..8]
+      (name [2..7]))))
+
+========================================
+Inline internal target with surrounding text
+========================================
+
+Hello _`world`.
+
+---
+
+(document [0..15]
+  (paragraph [0..15]
+    (inline_target [6..14]
+      (name [8..13]))))
+
+========================================
+Inline internal target multi-word name
+========================================
+
+_`Hello world`
+
+---
+
+(document [0..14]
+  (paragraph [0..14]
+    (inline_target [0..14]
+      (name [2..13]))))
+
+========================================
+Footnote reference numeric
+========================================
+
+[1]_
+
+---
+
+(document [0..4]
+  (paragraph [0..4]
+    (footnote_reference [0..4]
+      (label [1..2]))))
+
+========================================
+Footnote reference auto-numbered named
+========================================
+
+[#note]_
+
+---
+
+(document [0..8]
+  (paragraph [0..8]
+    (footnote_reference [0..8]
+      (label [1..6]))))
+
+========================================
+Footnote reference auto-symbol
+========================================
+
+[*]_
+
+---
+
+(document [0..4]
+  (paragraph [0..4]
+    (footnote_reference [0..4]
+      (label [1..2]))))
+
+========================================
+Footnote reference in text
+========================================
+
+See [1]_.
+
+---
+
+(document [0..9]
+  (paragraph [0..9]
+    (footnote_reference [4..8]
+      (label [5..6]))))
+
+========================================
+Citation reference simple
+========================================
+
+[CIT2020]_
+
+---
+
+(document [0..10]
+  (paragraph [0..10]
+    (citation_reference [0..10]
+      (label [1..8]))))
+
+========================================
+Citation reference in text
+========================================
+
+See [manual]_.
+
+---
+
+(document [0..14]
+  (paragraph [0..14]
+    (citation_reference [4..13]
+      (label [5..11]))))
+
+========================================
+Hyperlink reference bare
+========================================
+
+name_
+
+---
+
+(document [0..5]
+  (paragraph [0..5]
+    (reference [0..5]
+      (name [0..4]))))
+
+========================================
+Hyperlink reference bare in text
+========================================
+
+See manual_.
+
+---
+
+(document [0..12]
+  (paragraph [0..12]
+    (reference [4..11]
+      (name [4..10]))))
+
+========================================
+Hyperlink reference anonymous bare
+========================================
+
+name__
+
+---
+
+(document [0..6]
+  (paragraph [0..6]
+    (reference [0..6]
+      (name [0..4]))))
