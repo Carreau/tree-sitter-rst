@@ -76,18 +76,12 @@ Use \`x\` and `real` here.
 ---
 
 (document [0..105]
-  (paragraph [0..20]
-    (escape_sequence [2..4])
-    (escape_sequence [4..14]))
+  (paragraph [0..20])
   (paragraph [22..47]
-    (escape_sequence [24..26])
     (interpreted_text [35..40]))
   (paragraph [49..75]
-    (escape_sequence [53..55])
-    (escape_sequence [55..58])
     (interpreted_text [63..69]))
   (paragraph [77..105]
-    (escape_sequence [83..93])
     (interpreted_text [98..104])))
 
 ========================================
