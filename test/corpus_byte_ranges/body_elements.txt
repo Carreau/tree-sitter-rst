@@ -147,3 +147,62 @@ Grid table inside list item
       (body [2..32]
         (paragraph [2..7])
         (grid_table [11..32])))))
+
+========================================
+Directive with multiline arguments at body indent
+========================================
+
+.. list-table:: title
+   continuation
+   :header-rows: 1
+
+   * - A
+     - B
+
+---
+
+(document [0..75]
+  (directive [0..75]
+    (type [3..13])
+    (body [16..75]
+      (arguments [16..37])
+      (options [41..56]
+        (field [41..56]
+          (field_name [42..53])
+          (field_body [55..56]
+            (paragraph [55..56]))))
+      (content [61..75]))))
+
+========================================
+Directive with multiline arguments at deeper indent (known limitation)
+========================================
+
+.. list-table:: title
+                continuation
+   :header-rows: 1
+
+   * - A
+     - B
+
+---
+
+(document [0..88]
+  (directive [0..50]
+    (type [3..13])
+    (body [16..50]
+      (arguments [16..50])))
+  (field_list [54..88]
+    (field [54..88]
+      (field_name [55..66])
+      (field_body [68..88]
+        (paragraph [68..69])
+        (bullet_list [74..88]
+          (list_item [74..88]
+            (body [76..88]
+              (bullet_list [76..88]
+                (list_item [76..79]
+                  (body [78..79]
+                    (paragraph [78..79])))
+                (list_item [85..88]
+                  (body [87..88]
+                    (paragraph [87..88])))))))))))
