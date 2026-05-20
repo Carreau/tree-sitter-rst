@@ -1014,8 +1014,7 @@ Directives
   (directive
     (type)
     (body
-      (arguments)
-      (content)))
+      (arguments)))
   (directive
     (type)
     (body
@@ -1245,3 +1244,63 @@ Tables inside list items
     (list_item
       (body
         (paragraph)))))
+
+================================================================================
+Directive with multiline arguments at body indent
+================================================================================
+
+.. list-table:: title
+   continuation
+   :header-rows: 1
+
+   * - A
+     - B
+
+--------------------------------------------------------------------------------
+
+(document
+  (directive
+    (type)
+    (body
+      (arguments)
+      (options
+        (field
+          (field_name)
+          (field_body
+            (paragraph))))
+      (content))))
+
+================================================================================
+Directive with multiline arguments at deeper indent (known limitation)
+================================================================================
+
+.. list-table:: title
+                continuation
+   :header-rows: 1
+
+   * - A
+     - B
+
+--------------------------------------------------------------------------------
+
+(document
+  (directive
+    (type)
+    (body
+      (arguments)))
+  (MISSING _blankline)
+  (field_list
+    (field
+      (field_name)
+      (field_body
+        (paragraph)
+        (bullet_list
+          (list_item
+            (body
+              (bullet_list
+                (list_item
+                  (body
+                    (paragraph)))
+                (list_item
+                  (body
+                    (paragraph)))))))))))

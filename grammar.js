@@ -100,7 +100,9 @@ module.exports = grammar({
     $.__whitespace,
   ],
 
-  conflicts: $ => [],
+  conflicts: $ => [
+    [$._directive_body],
+  ],
 
   supertypes: $ => [
     $._list,
@@ -623,6 +625,21 @@ module.exports = grammar({
     ),
 
     _directive_body: $ => choice(
+      // Multi-line arguments (continuation at the body indent) followed
+      // by options + content.
+      seq(
+        alias($._text_block, $.arguments),
+        alias($.field_list, $.options),
+        $._blankline,
+        alias($._indented_text_block, $.content),
+      ),
+      // Multi-line arguments (continuation at the body indent) followed
+      // by options, no content.
+      seq(
+        alias($._text_block, $.arguments),
+        alias($.field_list, $.options),
+        $._dedent,
+      ),
       // Directives with content
       seq(
         optional(alias($._text_line, $.arguments)),
@@ -649,10 +666,16 @@ module.exports = grammar({
           seq(alias($.field_list, $.options), $._blankline, alias($._indented_text_block, $.content)),
         ),
       ),
-      // Directives with multiline arguments are split as arguments + content
+      // Multi-line arguments without options, content separated by blankline
       seq(
-        alias($._text_line, $.arguments),
+        alias($._text_block, $.arguments),
+        $._blankline,
         alias($._indented_text_block, $.content),
+      ),
+      // Multi-line arguments without options or content
+      seq(
+        alias($._text_block, $.arguments),
+        $._dedent,
       ),
     ),
 
