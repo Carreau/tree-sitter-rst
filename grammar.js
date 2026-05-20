@@ -649,6 +649,35 @@ module.exports = grammar({
           seq(alias($.field_list, $.options), $._blankline, alias($._indented_text_block, $.content)),
         ),
       ),
+      // Directives with first-line arguments continued on a deeper-indented
+      // line (aligned after the ``:: ``) followed by options and/or content
+      // at the body indent.
+      seq(
+        alias($._multiline_arguments, $.arguments),
+        choice(
+          // arguments only
+          $._dedent,
+          // arguments + options (no body)
+          seq(
+            optional($._blankline),
+            alias($.field_list, $.options),
+            optional($._blankline),
+            $._dedent,
+          ),
+          // arguments + content
+          seq(
+            $._blankline,
+            alias($._indented_text_block, $.content),
+          ),
+          // arguments + options + content
+          seq(
+            optional($._blankline),
+            alias($.field_list, $.options),
+            $._blankline,
+            alias($._indented_text_block, $.content),
+          ),
+        ),
+      ),
       // Directives with multiline arguments are split as arguments + content
       seq(
         alias($._text_line, $.arguments),
@@ -726,6 +755,13 @@ module.exports = grammar({
     _text_line: $ => seq(
       repeat1(alias($._text, 'text')),
       $._newline,
+    ),
+
+    _multiline_arguments: $ => seq(
+      $._text_line,
+      $._indent,
+      $._text_block,
+      $._dedent,
     ),
 
     _inline_markup: $ => choice(

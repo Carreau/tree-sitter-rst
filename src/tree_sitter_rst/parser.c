@@ -511,13 +511,20 @@ static bool parse_inner_list_element(RSTScanner* scanner, int consumed_chars, en
         return true;
       }
     } else if (token_type == T_EXPLICIT_MARKUP_START) {
+      int stop_indent = scanner->back(scanner);
       advance_to_next_line(scanner);
 
-      // The first non-empty line after the marker
-      // determines the indentation of the body.
-      indent = skip_blank_lines_get_indent(scanner);
-      if (indent <= scanner->back(scanner)) {
-        indent = scanner->back(scanner) + 1;
+      // The first non-empty line after the marker normally sets the
+      // indentation of the body. For directives whose arguments continue
+      // on a more deeply indented line (e.g. ``.. list-table:: Title\n
+      // <aligned continuation>\n   :option: value``), that first line is
+      // not where the body actually lives. Use the minimum indent over
+      // the lines that follow the marker (across blank lines), bounded
+      // by the directive's own indent, so the option/content line
+      // beneath the continuation still anchors the body indent.
+      indent = min_indent_in_block(scanner, stop_indent);
+      if (indent <= stop_indent) {
+        indent = stop_indent + 1;
       }
     } else if (token_type == T_NUMERIC_BULLET) {
       // Check if the next line is an underline.
