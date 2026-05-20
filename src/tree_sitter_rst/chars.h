@@ -55,5 +55,6 @@ static int get_indent_level(RSTScanner* scanner);
 static void consume_inline_whitespace(RSTScanner* scanner);
 static void advance_to_next_line(RSTScanner* scanner);
 static int skip_blank_lines_get_indent(RSTScanner* scanner);
+static int min_indent_until_blank_line(RSTScanner* scanner);
 
 #endif /* ifndef TREE_SITTER_RST_CHARS_H_ */
