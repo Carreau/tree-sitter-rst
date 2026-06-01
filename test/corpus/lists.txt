@@ -331,3 +331,31 @@ Field list with blank lines (#29)
     (field
       (field_name)
       (field_body (paragraph)))))
+
+========================================
+Bullet list items starting with > (#bug)
+========================================
+
+- >0 text
+- >=0 text
+- > text
+- >> text
+- >word
+- >>word
+
+---
+
+(document
+  (bullet_list
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))
+    (list_item
+      (body (paragraph)))))

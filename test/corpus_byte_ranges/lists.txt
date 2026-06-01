@@ -89,3 +89,25 @@ Field list with blank lines (#29)
       (field_name [14..17])
       (field_body [19..21]
         (paragraph [19..21])))))
+
+========================================
+Bullet list items starting with > (#bug)
+========================================
+
+- >0 text
+- > word
+- >> word
+
+----------------------------------------
+
+(document [0..28]
+  (bullet_list [0..28]
+    (list_item [0..9]
+      (body [2..9]
+        (paragraph [2..9])))
+    (list_item [10..18]
+      (body [12..18]
+        (paragraph [12..18])))
+    (list_item [19..28]
+      (body [21..28]
+        (paragraph [21..28])))))

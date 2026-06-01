@@ -1092,7 +1092,10 @@ static bool parse_doctest_block_mark(RSTScanner* scanner)
     lexer->result_symbol = T_DOCTEST_BLOCK_MARK;
     return true;
   }
-  return false;
+  // Not a doctest block mark (requires exactly '>>> ').  Fall back to text so
+  // that a bare '>' or '>>' inside a body element (e.g. a bullet list item
+  // like "- >0 : not converged") does not produce an ERROR node.
+  return parse_text(scanner, true);
 }
 
 static bool parse_inline_markup(RSTScanner* scanner)
