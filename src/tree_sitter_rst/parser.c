@@ -54,6 +54,8 @@ static bool parse_indent(RSTScanner* scanner)
     }
 
     if ((newlines > 1 || scanner->lookahead == CHAR_EOF) && valid_symbols[T_BLANKLINE]) {
+      // A blank line terminates a directive's option list.
+      scanner->in_directive_options = false;
       lexer->result_symbol = T_BLANKLINE;
       return true;
     }
@@ -619,6 +621,34 @@ static bool parse_inner_field_mark(RSTScanner* scanner)
   return false;
 }
 
+/// Decide the indentation level to push for a field body, given the
+/// indentation of the first non-blank line after the field marker.
+///
+/// ``empty_marker`` is true when the marker has no value on its own line
+/// (e.g. ``:nowrap:``) and ``immediate_blank`` is true when a blank line
+/// separates the marker from that first non-blank line.
+///
+/// A directive's option list ends at the first blank line, so a value-less
+/// option followed by a blank line must NOT absorb the indented block that
+/// follows -- that block is the directive's content. We push an indent one
+/// deeper than the content so the field body resolves to empty: the content
+/// dedents straight back out and is reparsed as the directive content block.
+/// Outside of directive options the historical behaviour is kept: the field
+/// body adopts the following indented block (across blank lines if needed).
+static int field_body_indent(RSTScanner* scanner, int indent, bool empty_marker,
+    bool immediate_blank)
+{
+  int back = scanner->back(scanner);
+  if (scanner->in_directive_options && empty_marker && immediate_blank
+      && indent > back) {
+    return indent + 1;
+  }
+  if (indent > back) {
+    return indent;
+  }
+  return back + 1;
+}
+
 static bool parse_field_mark_end(RSTScanner* scanner)
 {
   const bool* valid_symbols = scanner->valid_symbols;
@@ -632,18 +662,19 @@ static bool parse_field_mark_end(RSTScanner* scanner)
   lexer->mark_end(lexer);
 
   if (is_space(scanner->lookahead)) {
+    // A marker with no value on its own line ends in a newline (or EOF).
+    bool empty_marker = is_newline(scanner->lookahead) || scanner->lookahead == CHAR_EOF;
     // Consume all whitespaces.
     get_indent_level(scanner);
     advance_to_next_line(scanner);
 
-    // The first non-empty line after the field name marker
-    // determines the indentation of the field body.
+    // The first non-empty line after the field name marker determines the
+    // indentation of the field body. Whether that line is separated from the
+    // marker by a blank line matters for directive options (see helper).
+    bool immediate_blank = is_newline(scanner->lookahead) || scanner->lookahead == CHAR_EOF;
     int indent = skip_blank_lines_get_indent(scanner);
-    if (indent > scanner->back(scanner)) {
-      scanner->push(scanner, indent);
-    } else {
-      scanner->push(scanner, scanner->back(scanner) + 1);
-    }
+
+    scanner->push(scanner, field_body_indent(scanner, indent, empty_marker, immediate_blank));
 
     lexer->result_symbol = T_FIELD_MARK_END;
     return true;
@@ -882,6 +913,11 @@ static bool parse_directive_name(RSTScanner* scanner)
   scanner->advance(scanner);
 
   if (is_space(scanner->lookahead)) {
+    // The directive's option field list (if any) starts right after the
+    // name. Mark that we're in option context so a value-less option
+    // followed by a blank line ends the list instead of swallowing the
+    // directive content. The flag is cleared once a blank line is seen.
+    scanner->in_directive_options = true;
     lexer->result_symbol = T_DIRECTIVE_NAME;
     return true;
   }
@@ -1621,20 +1657,20 @@ static bool parse_role(RSTScanner* scanner)
   lexer->mark_end(lexer);
 
   if (is_space(scanner->lookahead) && valid_symbols[T_FIELD_MARK_END]) {
+    // A marker with no value on its own line ends in a newline (or EOF).
+    bool empty_marker = is_newline(scanner->lookahead) || scanner->lookahead == CHAR_EOF;
     // Consume all whitespaces.
     get_indent_level(scanner);
     lexer->mark_end(lexer);
     advance_to_next_line(scanner);
 
-    // The first non-empty line after the field name marker
-    // determines the indentation of the field body.
+    // The first non-empty line after the field name marker determines the
+    // indentation of the field body. Whether that line is separated from the
+    // marker by a blank line matters for directive options (see helper).
+    bool immediate_blank = is_newline(scanner->lookahead) || scanner->lookahead == CHAR_EOF;
     int indent = skip_blank_lines_get_indent(scanner);
 
-    if (indent > scanner->back(scanner)) {
-      scanner->push(scanner, indent);
-    } else {
-      scanner->push(scanner, scanner->back(scanner) + 1);
-    }
+    scanner->push(scanner, field_body_indent(scanner, indent, empty_marker, immediate_blank));
 
     lexer->result_symbol = T_FIELD_MARK_END;
     return true;

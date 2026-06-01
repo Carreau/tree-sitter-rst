@@ -23,6 +23,12 @@ struct RSTScanner {
   int* indent_stack;
   unsigned length;
 
+  // True while the option field list of a directive is being parsed. Used to
+  // make a value-less option followed by a blank line end the option list (so
+  // the indented block after it becomes the directive's content) instead of
+  // greedily absorbing that block as the option's field body.
+  bool in_directive_options;
+
   void (*push)(RSTScanner* scanner, int value);
   int (*pop)(RSTScanner* scanner);
   int (*back)(const RSTScanner* scanner);
