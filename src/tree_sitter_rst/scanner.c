@@ -27,6 +27,7 @@ static RSTScanner* new_rst_scanner()
   scanner->advance = rst_scanner_advance;
   scanner->skip = rst_scanner_skip;
   scanner->length = 0;
+  scanner->in_directive_options = false;
 
   scanner->push = rst_scanner_push;
   scanner->pop = rst_scanner_pop;
@@ -91,23 +92,30 @@ static int rst_scanner_back(const RSTScanner* scanner)
 
 static unsigned rst_scanner_serialize(RSTScanner* scanner, char* buffer)
 {
+  // Byte 0 holds the boolean flags; the indentation stack follows.
+  unsigned offset = 0;
+  buffer[offset++] = (char)scanner->in_directive_options;
+
   unsigned n = scanner->length;
   unsigned bytes = n * sizeof(int);
-  if (bytes > TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
-    n = TREE_SITTER_SERIALIZATION_BUFFER_SIZE / sizeof(int);
+  if (offset + bytes > TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
+    n = (TREE_SITTER_SERIALIZATION_BUFFER_SIZE - offset) / sizeof(int);
     bytes = n * sizeof(int);
   }
-  memcpy(buffer, scanner->indent_stack, bytes);
-  return bytes;
+  memcpy(buffer + offset, scanner->indent_stack, bytes);
+  return offset + bytes;
 }
 
 static void rst_scanner_deserialize(RSTScanner* scanner, const char* buffer, unsigned length)
 {
+  scanner->in_directive_options = false;
+  scanner->length = 0;
   if (buffer != NULL && length > 0) {
-    memcpy(scanner->indent_stack, buffer, length);
-    scanner->length = length / sizeof(int);
-  } else {
-    scanner->length = 0;
+    unsigned offset = 0;
+    scanner->in_directive_options = (bool)buffer[offset++];
+    unsigned bytes = length - offset;
+    memcpy(scanner->indent_stack, buffer + offset, bytes);
+    scanner->length = bytes / sizeof(int);
   }
 }
 
