@@ -26,9 +26,10 @@ static bool parse_indent(RSTScanner* scanner)
       indent = 0;
       newlines++;
       break;
-    } else if (scanner->lookahead == CHAR_CARRIAGE_RETURN) {
-      indent = 0;
-    } else if (scanner->lookahead == CHAR_NEWLINE) {
+    } else if (scanner->lookahead == CHAR_NEWLINE
+        || scanner->lookahead == CHAR_CARRIAGE_RETURN) {
+      // A lone \r is a line terminator too; the \n of a \r\n pair is
+      // swallowed by skip(), so it is never double-counted here.
       newlines++;
       indent = 0;
     } else {

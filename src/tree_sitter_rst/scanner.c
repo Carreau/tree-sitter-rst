@@ -50,8 +50,12 @@ static void rst_scanner_advance(RSTScanner* scanner)
   TSLexer* lexer = scanner->lexer;
   scanner->previous = scanner->lookahead;
   lexer->advance(lexer, false);
-  // Skip over the \r char in \r\n.
-  if (lexer->lookahead == CHAR_CARRIAGE_RETURN) {
+  // \r is a visible line terminator (is_newline() is true for it), so
+  // tokens end before it and a lone \r -- old-Mac line endings -- still
+  // breaks the line. \r\n counts as a single newline: consuming the \r
+  // swallows the \n that follows, so no scan ever starts between them.
+  if (scanner->previous == CHAR_CARRIAGE_RETURN
+      && lexer->lookahead == CHAR_NEWLINE) {
     lexer->advance(lexer, false);
   }
   scanner->lookahead = lexer->lookahead;
@@ -63,6 +67,11 @@ static void rst_scanner_skip(RSTScanner* scanner)
   TSLexer* lexer = scanner->lexer;
   scanner->previous = scanner->lookahead;
   lexer->advance(lexer, true);
+  // Same \r\n pairing as rst_scanner_advance.
+  if (scanner->previous == CHAR_CARRIAGE_RETURN
+      && lexer->lookahead == CHAR_NEWLINE) {
+    lexer->advance(lexer, true);
+  }
   scanner->lookahead = lexer->lookahead;
   // Skipped characters move the token start, so the next advance is
   // again the first character of the token.

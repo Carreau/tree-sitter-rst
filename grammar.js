@@ -8,7 +8,9 @@
 // @ts-check
 
 const WHITE_SPACE = choice(' ', '\t', '\v', '\f', '\u00A0');
-const NEWLINE = /\r?\n/;
+// A lone \r (old-Mac line ending) is a line terminator too; the external
+// scanner treats it the same way (see rst_scanner_advance).
+const NEWLINE = /\r?\n|\r/;
 const LINK = /\S(.*\S)?/;
 
 module.exports = grammar({
