@@ -595,7 +595,9 @@ static bool parse_inner_field_mark(RSTScanner* scanner)
 
   bool is_escaped = false;
   while (!is_newline(scanner->lookahead)) {
-    if (scanner->lookahead == '/') {
+    // A backslash escapes the following character, so an escaped colon
+    // (``:a\: b:``) does not terminate the field name.
+    if (scanner->lookahead == '\\') {
       scanner->advance(scanner);
       is_escaped = true;
     } else {
