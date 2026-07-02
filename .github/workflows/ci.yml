@@ -93,6 +93,9 @@ jobs:
           persist-credentials: false
       - name: Set up tree-sitter
         uses: tree-sitter/setup-action/cli@eeb902ac2f1be576edc296309872cf476a209b7f # v2
+        with:
+          # Keep in sync with the tree-sitter-cli pin in package-lock.json.
+          tree-sitter-ref: v0.26.8
       - name: Regenerate bindings
         run: make generate-bindings
       - name: Check for drift
@@ -114,6 +117,9 @@ jobs:
           persist-credentials: false
       - name: Set up tree-sitter
         uses: tree-sitter/setup-action/cli@eeb902ac2f1be576edc296309872cf476a209b7f # v2
+        with:
+          # Keep in sync with the tree-sitter-cli pin in package-lock.json.
+          tree-sitter-ref: v0.26.8
       - name: Rebuild wasm
         run: make wasm
       - name: Check for drift
