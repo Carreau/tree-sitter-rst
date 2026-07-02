@@ -290,7 +290,11 @@ static int get_indent_level(RSTScanner* scanner)
 
   while (true) {
     current = scanner->lookahead;
-    if (current == CHAR_SPACE || current == CHAR_VERTICAL_TAB || current == CHAR_FORM_FEED) {
+    // Keep this set in sync with parse_indent: both must agree on what
+    // counts as one column of indentation (NBSP included, like docutils,
+    // whose str.lstrip() treats it as whitespace).
+    if (current == CHAR_SPACE || current == CHAR_VERTICAL_TAB
+        || current == CHAR_FORM_FEED || current == CHAR_NBSP) {
       indent += 1;
     } else if (current == CHAR_TAB) {
       indent += TAB_STOP;
