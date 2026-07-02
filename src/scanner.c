@@ -40,5 +40,6 @@ bool tree_sitter_rst_external_scanner_scan(
   scanner->valid_symbols = valid_symbols;
   scanner->lookahead = lexer->lookahead;
   scanner->previous = lexer->lookahead;
+  scanner->advanced_chars = 0;
   return scanner->scan(scanner);
 }

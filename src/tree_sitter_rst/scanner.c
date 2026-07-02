@@ -55,6 +55,7 @@ static void rst_scanner_advance(RSTScanner* scanner)
     lexer->advance(lexer, false);
   }
   scanner->lookahead = lexer->lookahead;
+  scanner->advanced_chars++;
 }
 
 static void rst_scanner_skip(RSTScanner* scanner)
@@ -63,6 +64,9 @@ static void rst_scanner_skip(RSTScanner* scanner)
   scanner->previous = scanner->lookahead;
   lexer->advance(lexer, true);
   scanner->lookahead = lexer->lookahead;
+  // Skipped characters move the token start, so the next advance is
+  // again the first character of the token.
+  scanner->advanced_chars = 0;
 }
 
 static void rst_scanner_push(RSTScanner* scanner, int value)

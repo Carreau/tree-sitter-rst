@@ -15,6 +15,10 @@ struct RSTScanner {
 
   int32_t lookahead;
   int32_t previous;
+  // Number of characters consumed (via advance) since the start of the
+  // current token. Leading skips reset it, so it is 0 exactly when the
+  // next character consumed would be the first character of the token.
+  unsigned advanced_chars;
 
   void (*advance)(RSTScanner* scanner);
   void (*skip)(RSTScanner* scanner);

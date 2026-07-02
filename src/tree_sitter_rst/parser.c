@@ -1738,6 +1738,18 @@ static bool parse_text(RSTScanner* scanner, bool mark_end)
   }
 
   if (is_start_char(scanner->lookahead)) {
+    // When characters were already consumed (parse_text is a fallback for
+    // another parser that bailed out mid-token), end the text token before
+    // the start char instead of consuming it: the next scan then begins at
+    // the start char, so an escape sequence gets its own two-character
+    // token rather than silently absorbing the preceding word.
+    if (scanner->advanced_chars > 0) {
+      if (mark_end) {
+        lexer->mark_end(lexer);
+      }
+      lexer->result_symbol = T_TEXT;
+      return true;
+    }
     bool was_backslash = scanner->lookahead == '\\';
     scanner->advance(scanner);
     // Emit a distinct escape_sequence node when the parser expects one,
