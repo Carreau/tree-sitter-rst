@@ -359,3 +359,23 @@ Bullet list items starting with > (#bug)
       (body (paragraph)))
     (list_item
       (body (paragraph)))))
+
+========================================
+Backslash-escaped colon in field names
+========================================
+
+:a\: b: value
+
+:no-field\: here
+
+---
+
+(document
+  (field_list
+    (field
+      (field_name
+        (escape_sequence))
+      (field_body
+        (paragraph))))
+  (paragraph
+    (escape_sequence)))
