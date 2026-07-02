@@ -211,3 +211,22 @@ Embedded URI: missing closing angle bracket
   (paragraph [0..28]
     (reference [0..23]
       (name [1..21]))))
+
+========================================
+Standalone hyperlinks with unlisted schemes
+========================================
+
+See file:///etc/hosts and sftp://host/path here.
+
+A note:this stays text, and paragraph::
+
+   lit
+
+----------------------------------------
+
+(document [0..97]
+  (paragraph [0..48]
+    (standalone_hyperlink [4..21])
+    (standalone_hyperlink [26..42]))
+  (paragraph [50..97]
+    (literal_block [94..97])))
