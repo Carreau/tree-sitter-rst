@@ -1557,19 +1557,40 @@ static bool parse_inner_standalone_hyperlink(RSTScanner* scanner)
     is_valid = true;
   }
 
-  if (!is_valid) {
+  if (is_valid) {
+    scanner->advance(scanner);
+
+    if (scanner->lookahead == '/') {
+      scanner->advance(scanner);
+    } else if (!is_alphanumeric(scanner->lookahead)) {
+      return parse_text(scanner, !is_word);
+    }
+  } else if (scanner->lookahead == ':') {
+    // Unknown scheme. docutils linkifies any scheme, so accept it in the
+    // unambiguous form 'scheme://...' (file://, sftp://, s3://, ...);
+    // 'scheme:rest' without slashes stays text to avoid false positives
+    // on prose like 'note:this'. The word end was already marked (':' is
+    // a start char), so bailing out with parse_text(scanner, false) ends
+    // the text token before the colon and leaves it for the next scan --
+    // '::' literal-block marks depend on this.
+    scanner->advance(scanner);
+    if (scanner->lookahead == '/') {
+      scanner->advance(scanner);
+      if (scanner->lookahead != '/') {
+        return parse_text(scanner, false);
+      }
+      scanner->advance(scanner);
+    } else if (!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead)) {
+      // 'scheme:name' may still be a reference like foo:bar_.
+      return parse_inner_reference(scanner);
+    } else {
+      return parse_text(scanner, false);
+    }
+  } else {
     if ((!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead)) || is_internal_reference_char(scanner->lookahead)) {
       return parse_inner_reference(scanner);
     }
 
-    return parse_text(scanner, !is_word);
-  }
-
-  scanner->advance(scanner);
-
-  if (scanner->lookahead == '/') {
-    scanner->advance(scanner);
-  } else if (!is_alphanumeric(scanner->lookahead)) {
     return parse_text(scanner, !is_word);
   }
 
