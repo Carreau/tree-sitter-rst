@@ -3,6 +3,7 @@ $(error Windows is not supported)
 endif
 
 LANGUAGE_NAME := tree-sitter-rst
+DESCRIPTION := reStructuredText grammar for tree-sitter
 HOMEPAGE_URL := https://github.com/stsewd/tree-sitter-rst
 VERSION := 0.2.2
 
