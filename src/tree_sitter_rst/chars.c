@@ -126,6 +126,12 @@ static bool is_delim_char(int32_t c)
 /// Some tokens can start after non-whitespace chars.
 static bool is_start_char(int32_t c)
 {
+  // Backslash is not a docutils opener, but it must break words so that
+  // escape sequences get their own token (parse_text and the reference
+  // parsers rely on this to stop before a '\').
+  if (c == '\\') {
+    return true;
+  }
   int length = sizeof(start_chars) / sizeof(int32_t);
   for (int i = 0; i < length; i++) {
     if (c == start_chars[i]) {
