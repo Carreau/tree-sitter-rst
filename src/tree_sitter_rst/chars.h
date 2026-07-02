@@ -42,8 +42,6 @@ static bool is_numeric_bullet(int32_t c);
 static bool is_numeric_bullet_simple(int32_t c);
 static bool is_numeric_bullet_roman_lower(int32_t c);
 static bool is_numeric_bullet_roman_upper(int32_t c);
-static bool is_numeric_bullet_abc_lower(int32_t c);
-static bool is_numeric_bullet_abc_upper(int32_t c);
 static bool is_known_schema(const char* string, unsigned string_len);
 static bool is_invalid_uri_char(int32_t c);
 

@@ -14,7 +14,6 @@ static const unsigned IM_SUBSTITUTION_REFERENCE = 1u << 5u;
 static const unsigned IM_INLINE_TARGET = 1u << 6u;
 static const unsigned IM_FOOTNOTE_REFERENCE = 1u << 7u;
 static const unsigned IM_CITATION_REFERENCE = 1u << 8u;
-static const unsigned IM_REFERENCE = 1u << 9u;
 
 static bool parse_indent(RSTScanner* scanner);
 static bool parse_overline(RSTScanner* scanner);
@@ -24,11 +23,12 @@ static bool fallback_adornment(RSTScanner* scanner, int32_t adornment, int adorn
 static bool parse_char_bullet(RSTScanner* scanner);
 static bool parse_numeric_bullet(RSTScanner* scanner);
 static bool parse_inner_numeric_bullet(RSTScanner* scanner, bool parenthesized);
-static bool parse_explict_markup_start(RSTScanner* scanner);
+static bool parse_explicit_markup_start(RSTScanner* scanner);
 static bool parse_inner_list_element(RSTScanner* scanner, int consumed_chars, enum TokenType token_type);
 static bool parse_field_mark(RSTScanner* scanner);
 static bool parse_field_mark_end(RSTScanner* scanner);
 static bool parse_inner_field_mark(RSTScanner* scanner);
+static void push_field_body_indent(RSTScanner* scanner);
 
 static bool parse_literal_block_mark(RSTScanner* scanner);
 static bool parse_inner_literal_block_mark(RSTScanner* scanner);

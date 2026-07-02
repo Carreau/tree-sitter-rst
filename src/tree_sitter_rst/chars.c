@@ -220,15 +220,15 @@ static bool is_char_bullet(int32_t c)
 
 /// Check if it's a numeric bullet char.
 ///
-/// Lists cacn use different number formats to start an item.
+/// Lists can use different number formats to start an item.
 static bool is_numeric_bullet(int32_t c)
 {
   return (
       is_numeric_bullet_simple(c)
       || is_numeric_bullet_roman_lower(c)
       || is_numeric_bullet_roman_upper(c)
-      || is_numeric_bullet_abc_lower(c)
-      || is_numeric_bullet_abc_upper(c));
+      || is_abc_lower(c)
+      || is_abc_upper(c));
 }
 
 static bool is_numeric_bullet_simple(int32_t c)
@@ -266,16 +266,6 @@ static bool is_numeric_bullet_roman_upper(int32_t c)
     default:
       return false;
   }
-}
-
-static bool is_numeric_bullet_abc_lower(int32_t c)
-{
-  return is_abc_lower(c);
-}
-
-static bool is_numeric_bullet_abc_upper(int32_t c)
-{
-  return is_abc_upper(c);
 }
 
 /// Check if it's a valid attribution char.

@@ -216,14 +216,6 @@ static bool parse_underline(RSTScanner* scanner)
     return parse_text(scanner, false);
   }
 
-  // ``::`` on its own line is the literal-block marker, not a section
-  // underline. The spec requires the underline to be at least as long as
-  // the title text, and a two-character ``::`` is much more often a literal
-  // block marker than a one- or two-letter title's adornment. Hand the token
-  // off to ``parse_inner_literal_block_mark`` if the parser is willing to
-  // accept it. Without this check ``parse_underline`` greedily consumes the
-  // ``::`` and the indented block that follows is parsed as a block_quote
-  // (#27).
   // Transitions need to be at least 4 chars long
   if (underline_length >= 4 && valid_symbols[T_TRANSITION]) {
     lexer->result_symbol = T_TRANSITION;
@@ -251,7 +243,7 @@ static bool parse_underline(RSTScanner* scanner)
   return parse_text(scanner, false);
 }
 
-/// If the adnorment is not valid, try to parse a different token.
+/// If the adornment is not valid, try to parse a different token.
 ///
 /// Lots of adornments are also valid tokens, so we need to check for each one of them.
 static bool fallback_adornment(RSTScanner* scanner, int32_t adornment, int adornment_length)
@@ -411,14 +403,14 @@ static bool parse_inner_numeric_bullet(RSTScanner* scanner, bool parenthesized)
       scanner->advance(scanner);
       consumed_chars++;
     }
-  } else if (is_numeric_bullet_abc_lower(scanner->previous)) {
+  } else if (is_abc_lower(scanner->previous)) {
     if (is_numeric_bullet_roman_lower(scanner->previous)) {
       while (is_numeric_bullet_roman_lower(scanner->lookahead)) {
         scanner->advance(scanner);
         consumed_chars++;
       }
     }
-  } else if (is_numeric_bullet_abc_upper(scanner->previous)) {
+  } else if (is_abc_upper(scanner->previous)) {
     if (is_numeric_bullet_roman_upper(scanner->previous)) {
       while (is_numeric_bullet_roman_upper(scanner->lookahead)) {
         scanner->advance(scanner);
@@ -455,7 +447,7 @@ static bool parse_inner_numeric_bullet(RSTScanner* scanner, bool parenthesized)
   return parse_text(scanner, true);
 }
 
-static bool parse_explict_markup_start(RSTScanner* scanner)
+static bool parse_explicit_markup_start(RSTScanner* scanner)
 {
   const bool* valid_symbols = scanner->valid_symbols;
 
@@ -622,6 +614,23 @@ static bool parse_inner_field_mark(RSTScanner* scanner)
   return false;
 }
 
+/// Consume up to the first non-blank line after a field name marker and
+/// push the field body's indentation level. The first non-empty line
+/// determines the body indentation; a body that is not indented deeper
+/// than the current scope still gets a one-deeper level so it resolves
+/// to empty.
+static void push_field_body_indent(RSTScanner* scanner)
+{
+  advance_to_next_line(scanner);
+
+  int indent = skip_blank_lines_get_indent(scanner);
+  if (indent > scanner->back(scanner)) {
+    scanner->push(scanner, indent);
+  } else {
+    scanner->push(scanner, scanner->back(scanner) + 1);
+  }
+}
+
 static bool parse_field_mark_end(RSTScanner* scanner)
 {
   const bool* valid_symbols = scanner->valid_symbols;
@@ -637,16 +646,7 @@ static bool parse_field_mark_end(RSTScanner* scanner)
   if (is_space(scanner->lookahead)) {
     // Consume all whitespaces.
     get_indent_level(scanner);
-    advance_to_next_line(scanner);
-
-    // The first non-empty line after the field name marker
-    // determines the indentation of the field body.
-    int indent = skip_blank_lines_get_indent(scanner);
-    if (indent > scanner->back(scanner)) {
-      scanner->push(scanner, indent);
-    } else {
-      scanner->push(scanner, scanner->back(scanner) + 1);
-    }
+    push_field_body_indent(scanner);
 
     lexer->result_symbol = T_FIELD_MARK_END;
     return true;
@@ -1336,7 +1336,7 @@ static bool parse_inner_reference(RSTScanner* scanner)
   bool internal_symbol = is_internal_reference_char(scanner->previous);
   bool is_word = false;
   while ((!is_space(scanner->lookahead) && !is_end_char(scanner->lookahead)) || is_internal_reference_char(scanner->lookahead)) {
-    // Mark the end of the worl?d.
+    // Mark the end of the word.
     if (is_start_char(scanner->lookahead) && !is_word) {
       is_word = true;
       lexer->mark_end(lexer);
@@ -1545,7 +1545,9 @@ static bool parse_inner_standalone_hyperlink(RSTScanner* scanner)
     scanner->advance(scanner);
   }
 
-  bool is_word = false;
+  // Mark the word end when a start char follows the scheme candidate, so
+  // bail-out paths that use parse_text(scanner, false) end the text token
+  // before it (e.g. before the ':' of a '::' literal-block mark).
   if (is_start_char(scanner->lookahead)) {
     lexer->mark_end(lexer);
   }
@@ -1563,7 +1565,7 @@ static bool parse_inner_standalone_hyperlink(RSTScanner* scanner)
     if (scanner->lookahead == '/') {
       scanner->advance(scanner);
     } else if (!is_alphanumeric(scanner->lookahead)) {
-      return parse_text(scanner, !is_word);
+      return parse_text(scanner, true);
     }
   } else if (scanner->lookahead == ':') {
     // Unknown scheme. docutils linkifies any scheme, so accept it in the
@@ -1591,7 +1593,7 @@ static bool parse_inner_standalone_hyperlink(RSTScanner* scanner)
       return parse_inner_reference(scanner);
     }
 
-    return parse_text(scanner, !is_word);
+    return parse_text(scanner, true);
   }
 
   consumed_chars = 0;
@@ -1629,7 +1631,7 @@ static bool parse_inner_standalone_hyperlink(RSTScanner* scanner)
     return true;
   }
 
-  return parse_text(scanner, !is_word);
+  return parse_text(scanner, true);
 }
 
 static bool parse_role(RSTScanner* scanner)
@@ -1648,20 +1650,11 @@ static bool parse_role(RSTScanner* scanner)
   lexer->mark_end(lexer);
 
   if (is_space(scanner->lookahead) && valid_symbols[T_FIELD_MARK_END]) {
-    // Consume all whitespaces.
+    // Consume all whitespaces. Unlike parse_field_mark_end, the token
+    // includes the trailing inline whitespace (mark_end after the skip).
     get_indent_level(scanner);
     lexer->mark_end(lexer);
-    advance_to_next_line(scanner);
-
-    // The first non-empty line after the field name marker
-    // determines the indentation of the field body.
-    int indent = skip_blank_lines_get_indent(scanner);
-
-    if (indent > scanner->back(scanner)) {
-      scanner->push(scanner, indent);
-    } else {
-      scanner->push(scanner, scanner->back(scanner) + 1);
-    }
+    push_field_body_indent(scanner);
 
     lexer->result_symbol = T_FIELD_MARK_END;
     return true;

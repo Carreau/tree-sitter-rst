@@ -245,11 +245,10 @@ module.exports = grammar({
     - One
     - Two
 
-    Note: a `_blankline` is allowed *between* list items, so a single
-    bullet_list can span items separated by a blank line. A blank line
-    followed by a non-list construct, or a different bullet character,
-    will still terminate the list (producing separate list nodes in the
-    tree).
+    Note: although the rule allows a `_blankline` after each item,
+    blank-line-separated items currently parse as separate bullet_list
+    nodes (see the "(#29)" corpus tests) — a known divergence from
+    docutils, which keeps same-bullet items in one list.
     */
     bullet_list: $ => repeat1(
       choice(
