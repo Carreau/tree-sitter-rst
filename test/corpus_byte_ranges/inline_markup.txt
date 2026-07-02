@@ -76,12 +76,18 @@ Use \`x\` and `real` here.
 ---
 
 (document [0..105]
-  (paragraph [0..20])
+  (paragraph [0..20]
+    (escape_sequence [2..4])
+    (escape_sequence [12..14]))
   (paragraph [22..47]
+    (escape_sequence [24..26])
     (interpreted_text [35..40]))
   (paragraph [49..75]
+    (escape_sequence [53..55])
+    (escape_sequence [56..58])
     (interpreted_text [63..69]))
   (paragraph [77..105]
+    (escape_sequence [91..93])
     (interpreted_text [98..104])))
 
 ========================================
@@ -101,12 +107,29 @@ a\ **b**\ c
     (strong [0..8])
     (escape_sequence [8..10]))
   (paragraph [16..30]
-    (escape_sequence [16..22])
+    (escape_sequence [20..22])
     (strong [22..30]))
   (paragraph [32..43]
     (escape_sequence [33..35])
     (strong [35..40])
     (escape_sequence [40..42])))
+
+========================================
+Escape sequence spans exactly two characters (fallback paths)
+========================================
+
+word\*star
+
+See file\_name and x\`y here.
+
+---
+
+(document [0..41]
+  (paragraph [0..10]
+    (escape_sequence [4..6]))
+  (paragraph [12..41]
+    (escape_sequence [20..22])
+    (escape_sequence [32..34])))
 
 ========================================
 Embedded URI reference
