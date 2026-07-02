@@ -1245,3 +1245,17 @@ Tables inside list items
     (list_item
       (body
         (paragraph)))))
+
+========================================
+NBSP-indented literal block
+========================================
+
+para::
+
+   literal block
+
+---
+
+(document
+  (paragraph
+    (literal_block)))

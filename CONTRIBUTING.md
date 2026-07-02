@@ -103,11 +103,22 @@ To build the grammar:
 npm run build
 ```
 
-To run the tests:
+To run the corpus tests (`test/corpus/`):
 
 ```bash
-npm run test
+make test
 ```
+
+(this runs `tree-sitter test`; you can also invoke that directly).
+
+To run the Python test suites (`test/test_byte_ranges.py` and
+`bindings/python/tests/`):
+
+```bash
+make test-python
+```
+
+The node binding also has a small smoke test, run with `npm run test`.
 
 Note: if you changed the grammar, you need to re-build it
 for tests to use the new grammar.

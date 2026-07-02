@@ -1756,7 +1756,7 @@
     },
     "__newline": {
       "type": "PATTERN",
-      "value": "\\r?\\n"
+      "value": "\\r?\\n|\\r"
     },
     "__whitespace": {
       "type": "TOKEN",

@@ -680,3 +680,20 @@ a\ **b**\ c
     (escape_sequence)
     (strong)
     (escape_sequence)))
+
+========================================
+Standalone hyperlinks with unlisted schemes
+========================================
+
+See file:///etc/hosts and sftp://host/path here.
+
+A note:this stays text, s3://bucket/key does not.
+
+---
+
+(document
+  (paragraph
+    (standalone_hyperlink)
+    (standalone_hyperlink))
+  (paragraph
+    (standalone_hyperlink)))

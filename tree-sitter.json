@@ -14,7 +14,7 @@
     }
   ],
   "metadata": {
-    "version": "0.2.0",
+    "version": "0.2.2",
     "license": "MIT",
     "description": "reStructuredText grammar for tree-sitter",
     "authors": [

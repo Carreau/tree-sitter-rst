@@ -18,11 +18,12 @@
 // Disambiguating table borders from sibling constructs is delicate:
 //
 //   * '+' starts a grid border ("+---+") AND a char_bullet ("+ item").
-//     We can't tell which without lookahead at the second character,
-//     and the tree-sitter external scanner does NOT roll back lexer
-//     state when the scanner returns false — every advance persists.
-//     So once we commit to advancing past '+', the dispatcher must
-//     produce a token: table, char_bullet, or text.
+//     We can't tell which without lookahead at the second character.
+//     Returning false after advancing is safe (tree-sitter re-lexes
+//     from the token start with the internal lexer), but there is no
+//     internal rule for these tokens to fall back to, so once we commit
+//     to advancing past '+', the dispatcher produces a token itself:
+//     table, char_bullet, or text.
 //
 //   * '=' starts a simple-table border ("=== ===") AND a section
 //     overline/underline ("======"). They differ only by presence of

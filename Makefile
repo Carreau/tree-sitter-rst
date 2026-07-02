@@ -3,8 +3,9 @@ $(error Windows is not supported)
 endif
 
 LANGUAGE_NAME := tree-sitter-rst
+DESCRIPTION := reStructuredText grammar for tree-sitter
 HOMEPAGE_URL := https://github.com/stsewd/tree-sitter-rst
-VERSION := 0.2.0
+VERSION := 0.2.2
 
 # repository
 SRC_DIR := src
@@ -93,6 +94,14 @@ clean:
 
 test:
 	$(TS) test
+
+# Run the Python test suites: the byte-range regression tests in test/
+# and the binding tests in bindings/python/tests/. Installs the package
+# in editable mode first (this builds the parser extension). Run inside
+# a virtualenv if you don't want to touch the system site-packages.
+test-python:
+	pip install -e '.[core]' pytest
+	python3 -m pytest test/ bindings/python/tests/
 
 release: all format
 	npm run prestart
@@ -184,4 +193,4 @@ generate-bindings:
 wasm:
 	$(TS) build --wasm
 
-.PHONY: all install uninstall clean test release update-examples parse-examples serve format lint lint-format lint-tidy lint-cppcheck format-python lint-python lint-python-format lint-python-check generate-bindings wasm
+.PHONY: all install uninstall clean test test-python release update-examples parse-examples serve format lint lint-format lint-tidy lint-cppcheck format-python lint-python lint-python-format lint-python-check generate-bindings wasm

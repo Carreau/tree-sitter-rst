@@ -50,11 +50,16 @@ static void rst_scanner_advance(RSTScanner* scanner)
   TSLexer* lexer = scanner->lexer;
   scanner->previous = scanner->lookahead;
   lexer->advance(lexer, false);
-  // Skip over the \r char in \r\n.
-  if (lexer->lookahead == CHAR_CARRIAGE_RETURN) {
+  // \r is a visible line terminator (is_newline() is true for it), so
+  // tokens end before it and a lone \r -- old-Mac line endings -- still
+  // breaks the line. \r\n counts as a single newline: consuming the \r
+  // swallows the \n that follows, so no scan ever starts between them.
+  if (scanner->previous == CHAR_CARRIAGE_RETURN
+      && lexer->lookahead == CHAR_NEWLINE) {
     lexer->advance(lexer, false);
   }
   scanner->lookahead = lexer->lookahead;
+  scanner->advanced_chars++;
 }
 
 static void rst_scanner_skip(RSTScanner* scanner)
@@ -62,7 +67,15 @@ static void rst_scanner_skip(RSTScanner* scanner)
   TSLexer* lexer = scanner->lexer;
   scanner->previous = scanner->lookahead;
   lexer->advance(lexer, true);
+  // Same \r\n pairing as rst_scanner_advance.
+  if (scanner->previous == CHAR_CARRIAGE_RETURN
+      && lexer->lookahead == CHAR_NEWLINE) {
+    lexer->advance(lexer, true);
+  }
   scanner->lookahead = lexer->lookahead;
+  // Skipped characters move the token start, so the next advance is
+  // again the first character of the token.
+  scanner->advanced_chars = 0;
 }
 
 static void rst_scanner_push(RSTScanner* scanner, int value)
@@ -91,6 +104,11 @@ static int rst_scanner_back(const RSTScanner* scanner)
 
 static unsigned rst_scanner_serialize(RSTScanner* scanner, char* buffer)
 {
+  // The full stack always fits in tree-sitter's serialization buffer, so
+  // the clamp below is a safety net that cannot currently trigger.
+  _Static_assert(
+      RST_SCANNER_STACK_MAX_CAPACITY * sizeof(int) <= TREE_SITTER_SERIALIZATION_BUFFER_SIZE,
+      "indent stack must fit in the serialization buffer");
   unsigned n = scanner->length;
   unsigned bytes = n * sizeof(int);
   if (bytes > TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
@@ -194,7 +212,7 @@ static bool rst_scanner_scan(RSTScanner* scanner)
   }
 
   if (current == '.' && valid_symbols[T_EXPLICIT_MARKUP_START]) {
-    return parse_explict_markup_start(scanner);
+    return parse_explicit_markup_start(scanner);
   }
 
   if (is_attribution_mark(current) && valid_symbols[T_ATTRIBUTION_MARK]) {
@@ -293,10 +311,6 @@ static bool rst_scanner_scan(RSTScanner* scanner)
       && !is_end_char(current)
       && valid_symbols[T_REFERENCE]) {
     return parse_reference(scanner);
-  }
-
-  if (current == '\\' && valid_symbols[T_ESCAPE_SEQUENCE]) {
-    return parse_text(scanner, true);
   }
 
   if (!is_space(current) && valid_symbols[T_TEXT]) {

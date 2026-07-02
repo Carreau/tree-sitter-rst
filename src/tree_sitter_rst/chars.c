@@ -126,6 +126,12 @@ static bool is_delim_char(int32_t c)
 /// Some tokens can start after non-whitespace chars.
 static bool is_start_char(int32_t c)
 {
+  // Backslash is not a docutils opener, but it must break words so that
+  // escape sequences get their own token (parse_text and the reference
+  // parsers rely on this to stop before a '\').
+  if (c == '\\') {
+    return true;
+  }
   int length = sizeof(start_chars) / sizeof(int32_t);
   for (int i = 0; i < length; i++) {
     if (c == start_chars[i]) {
@@ -214,15 +220,15 @@ static bool is_char_bullet(int32_t c)
 
 /// Check if it's a numeric bullet char.
 ///
-/// Lists cacn use different number formats to start an item.
+/// Lists can use different number formats to start an item.
 static bool is_numeric_bullet(int32_t c)
 {
   return (
       is_numeric_bullet_simple(c)
       || is_numeric_bullet_roman_lower(c)
       || is_numeric_bullet_roman_upper(c)
-      || is_numeric_bullet_abc_lower(c)
-      || is_numeric_bullet_abc_upper(c));
+      || is_abc_lower(c)
+      || is_abc_upper(c));
 }
 
 static bool is_numeric_bullet_simple(int32_t c)
@@ -262,16 +268,6 @@ static bool is_numeric_bullet_roman_upper(int32_t c)
   }
 }
 
-static bool is_numeric_bullet_abc_lower(int32_t c)
-{
-  return is_abc_lower(c);
-}
-
-static bool is_numeric_bullet_abc_upper(int32_t c)
-{
-  return is_abc_upper(c);
-}
-
 /// Check if it's a valid attribution char.
 ///
 /// Attribution chars are used to denote the author of a quote.
@@ -290,7 +286,11 @@ static int get_indent_level(RSTScanner* scanner)
 
   while (true) {
     current = scanner->lookahead;
-    if (current == CHAR_SPACE || current == CHAR_VERTICAL_TAB || current == CHAR_FORM_FEED) {
+    // Keep this set in sync with parse_indent: both must agree on what
+    // counts as one column of indentation (NBSP included, like docutils,
+    // whose str.lstrip() treats it as whitespace).
+    if (current == CHAR_SPACE || current == CHAR_VERTICAL_TAB
+        || current == CHAR_FORM_FEED || current == CHAR_NBSP) {
       indent += 1;
     } else if (current == CHAR_TAB) {
       indent += TAB_STOP;

@@ -147,3 +147,17 @@ Grid table inside list item
       (body [2..32]
         (paragraph [2..7])
         (grid_table [11..32])))))
+
+========================================
+NBSP-indented literal block
+========================================
+
+para::
+
+   literal block
+
+----------------------------------------
+
+(document [0..27]
+  (paragraph [0..27]
+    (literal_block [14..27])))
