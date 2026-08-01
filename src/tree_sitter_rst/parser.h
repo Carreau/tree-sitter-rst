@@ -50,6 +50,23 @@ static bool parse_substitution_mark(RSTScanner* scanner);
 
 static bool parse_inline_markup(RSTScanner* scanner);
 static bool parse_inner_inline_markup(RSTScanner* scanner, unsigned type);
+
+static bool parse_substitution_open_inner(RSTScanner* scanner);
+static bool parse_substitution_name(RSTScanner* scanner);
+static bool parse_substitution_close(RSTScanner* scanner);
+
+static bool parse_inline_target_open_inner(RSTScanner* scanner);
+static bool parse_inline_target_name(RSTScanner* scanner);
+static bool parse_inline_target_close(RSTScanner* scanner);
+
+static bool parse_label_open_inner(RSTScanner* scanner);
+static bool parse_citation_reference_label(RSTScanner* scanner);
+static bool parse_footnote_reference_label(RSTScanner* scanner);
+static bool parse_reference_label_close(RSTScanner* scanner);
+
+static bool parse_reference_bare_name(RSTScanner* scanner);
+static bool parse_reference_bare_mark(RSTScanner* scanner);
+
 static bool parse_reference(RSTScanner* scanner);
 static bool parse_inner_reference(RSTScanner* scanner);
 static bool parse_reference_name(RSTScanner* scanner);

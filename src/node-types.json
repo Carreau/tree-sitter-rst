@@ -277,6 +277,21 @@
     }
   },
   {
+    "type": "citation_reference",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "label",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "classifier",
     "named": true,
     "fields": {},
@@ -588,9 +603,39 @@
     }
   },
   {
+    "type": "footnote_reference",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "label",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "grid_table",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "inline_target",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "interpreted_text",
@@ -769,6 +814,21 @@
     }
   },
   {
+    "type": "substitution_reference",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "target",
     "named": true,
     "fields": {
@@ -865,11 +925,23 @@
     "named": false
   },
   {
+    "type": "[",
+    "named": false
+  },
+  {
+    "type": "]_",
+    "named": false
+  },
+  {
     "type": "_",
     "named": false
   },
   {
     "type": "__",
+    "named": false
+  },
+  {
+    "type": "_`",
     "named": false
   },
   {
@@ -885,23 +957,11 @@
     "named": false
   },
   {
-    "type": "citation_reference",
-    "named": true
-  },
-  {
     "type": "emphasis",
     "named": true
   },
   {
     "type": "escape_sequence",
-    "named": true
-  },
-  {
-    "type": "footnote_reference",
-    "named": true
-  },
-  {
-    "type": "inline_target",
     "named": true
   },
   {
@@ -938,10 +998,6 @@
   },
   {
     "type": "substitution",
-    "named": true
-  },
-  {
-    "type": "substitution_reference",
     "named": true
   },
   {
