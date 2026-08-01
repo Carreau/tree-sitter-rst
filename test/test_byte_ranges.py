@@ -37,6 +37,7 @@ import tree_sitter_rst
 # Tree rendering
 # ---------------------------------------------------------------------------
 
+
 def _render(node: tree_sitter.Node, indent: int = 0) -> str:
     """Recursively render *node* as an s-expression with byte-range annotations.
 
@@ -116,7 +117,9 @@ _CORPUS_DIR = Path(__file__).parent / "corpus_byte_ranges"
 _PARAMS: list[pytest.param] = []
 for _corpus_file in sorted(_CORPUS_DIR.glob("*.txt")):
     for _name, _source, _expected in _parse_corpus(_corpus_file):
-        _PARAMS.append(pytest.param(_source, _expected, id=f"{_corpus_file.stem}::{_name}"))
+        _PARAMS.append(
+            pytest.param(_source, _expected, id=f"{_corpus_file.stem}::{_name}")
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +133,9 @@ def _tree_diff(actual: str, expected: str) -> str:
     """Return a unified diff between *expected* and *actual* tree strings."""
     a_lines = expected.splitlines(keepends=True)
     b_lines = actual.splitlines(keepends=True)
-    diff = difflib.unified_diff(a_lines, b_lines, fromfile="expected", tofile="actual", lineterm="")
+    diff = difflib.unified_diff(
+        a_lines, b_lines, fromfile="expected", tofile="actual", lineterm=""
+    )
     return "".join(diff)
 
 
