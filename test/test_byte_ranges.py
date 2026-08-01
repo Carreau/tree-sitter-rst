@@ -30,6 +30,7 @@ import re
 from pathlib import Path
 
 import pytest
+
 import tree_sitter
 import tree_sitter_rst
 
