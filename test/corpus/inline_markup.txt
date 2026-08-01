@@ -150,8 +150,10 @@ I'm in [`brackets`, `too`].
     (interpreted_text))
   (paragraph
     (interpreted_text)
-    (interpreted_text)
-    (interpreted_text))
+    (interpreted_text
+      (escape_sequence))
+    (interpreted_text
+      (escape_sequence)))
   (paragraph
     (interpreted_text))
   (paragraph
