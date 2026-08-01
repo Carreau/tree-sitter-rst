@@ -244,3 +244,58 @@ Directive with options followed by bullet list
     (list_item
       (body
         (paragraph)))))
+
+================================================================================
+Directive with multi-line argument aligned after the double colon (#)
+================================================================================
+
+.. list-table:: misparsed directive with
+                multiline title align after double colon
+   :header-rows: 1
+
+   * - this
+     - is
+   * - a
+     - Table
+
+--------------------------------------------------------------------------------
+
+(document
+  (directive
+    name: (type)
+    body: (body
+      (arguments)
+      (options
+        (field
+          (field_name)
+          (field_body
+            (paragraph))))
+      (content))))
+
+================================================================================
+Directive with multi-line argument separated from options/body by blank lines (#)
+================================================================================
+
+.. list-table:: misparsed directive with
+                multiline title align after double colon
+
+   :header-rows: 1
+
+   * - this
+     - is
+   * - a
+     - Table
+
+--------------------------------------------------------------------------------
+
+(document
+  (directive
+    name: (type)
+    body: (body
+      (arguments)
+      (options
+        (field
+          (field_name)
+          (field_body
+            (paragraph))))
+      (content))))

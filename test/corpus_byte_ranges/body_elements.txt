@@ -147,3 +147,58 @@ Grid table inside list item
       (body [2..32]
         (paragraph [2..7])
         (grid_table [11..32])))))
+
+========================================
+Directive with multi-line argument aligned after the double colon
+========================================
+
+.. list-table:: misparsed directive with
+                multiline title align after double colon
+   :header-rows: 1
+
+   * - this
+     - is
+   * - a
+     - Table
+
+---
+
+(document [0..161]
+  (directive [0..161]
+    (type [3..13])
+    (body [16..161]
+      (arguments [16..97])
+      (options [101..116]
+        (field [101..116]
+          (field_name [102..113])
+          (field_body [115..116]
+            (paragraph [115..116]))))
+      (content [121..161]))))
+
+========================================
+Directive with multi-line argument separated from options/body by blank lines
+========================================
+
+.. list-table:: misparsed directive with
+                multiline title align after double colon
+
+   :header-rows: 1
+
+   * - this
+     - is
+   * - a
+     - Table
+
+---
+
+(document [0..162]
+  (directive [0..162]
+    (type [3..13])
+    (body [16..162]
+      (arguments [16..97])
+      (options [102..117]
+        (field [102..117]
+          (field_name [103..114])
+          (field_body [116..117]
+            (paragraph [116..117]))))
+      (content [122..162]))))

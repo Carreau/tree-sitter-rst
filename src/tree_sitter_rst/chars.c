@@ -369,3 +369,49 @@ static int skip_blank_lines_get_indent(RSTScanner* scanner)
   }
   return indent;
 }
+
+/// Like skip_blank_lines_get_indent, but keep scanning subsequent lines
+/// (including across blank lines) and return the smallest indent observed
+/// among non-blank lines that are still part of the markup body. Scanning
+/// stops at EOF or at a non-blank line whose indent is at or below
+/// ``stop_indent`` (i.e. outside the markup body). This lets a directive
+/// whose arguments continue on a more-deeply-indented line still pick up
+/// the body indent from the option/content line that follows, even if the
+/// option/content is separated by blank lines (see issue: multi-line
+/// directive title aligned after the double colon).
+static int min_indent_in_block(RSTScanner* scanner, int stop_indent)
+{
+  int min_indent = skip_blank_lines_get_indent(scanner);
+  if (scanner->lookahead == CHAR_EOF) {
+    return min_indent;
+  }
+  // Skip past the first non-empty line.
+  while (!is_newline(scanner->lookahead) && scanner->lookahead != CHAR_EOF) {
+    scanner->advance(scanner);
+  }
+  while (scanner->lookahead != CHAR_EOF) {
+    if (is_newline(scanner->lookahead)) {
+      scanner->advance(scanner);
+    }
+    int line_indent = get_indent_level(scanner);
+    if (scanner->lookahead == CHAR_EOF) {
+      break;
+    }
+    if (is_newline(scanner->lookahead)) {
+      // Blank line; keep scanning past it.
+      continue;
+    }
+    if (line_indent <= stop_indent) {
+      // A non-blank line at or below the stop indent is outside the
+      // markup body; stop scanning.
+      break;
+    }
+    if (line_indent < min_indent) {
+      min_indent = line_indent;
+    }
+    while (!is_newline(scanner->lookahead) && scanner->lookahead != CHAR_EOF) {
+      scanner->advance(scanner);
+    }
+  }
+  return min_indent;
+}
