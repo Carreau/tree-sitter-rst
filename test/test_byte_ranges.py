@@ -55,7 +55,7 @@ def _render(node: tree_sitter.Node, indent: int = 0) -> str:
     named_children = [c for c in node.children if c.is_named]
     if not named_children:
         return header + ")"
-    child_lines = [l for c in named_children if (l := _render(c, indent + 1))]
+    child_lines = [ln for c in named_children if (ln := _render(c, indent + 1))]
     return header + "\n" + "\n".join(child_lines) + ")"
 
 
