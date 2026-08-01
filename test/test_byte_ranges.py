@@ -29,12 +29,14 @@ import re
 from pathlib import Path
 
 import pytest
+
 import tree_sitter
 import tree_sitter_rst
 
 # ---------------------------------------------------------------------------
 # Tree rendering
 # ---------------------------------------------------------------------------
+
 
 def _render(node: tree_sitter.Node, indent: int = 0) -> str:
     """Recursively render *node* as an s-expression with byte-range annotations.
@@ -53,7 +55,7 @@ def _render(node: tree_sitter.Node, indent: int = 0) -> str:
     named_children = [c for c in node.children if c.is_named]
     if not named_children:
         return header + ")"
-    child_lines = [l for c in named_children if (l := _render(c, indent + 1))]
+    child_lines = [s for c in named_children if (s := _render(c, indent + 1))]
     return header + "\n" + "\n".join(child_lines) + ")"
 
 
@@ -115,7 +117,9 @@ _CORPUS_DIR = Path(__file__).parent / "corpus_byte_ranges"
 _PARAMS: list[pytest.param] = []
 for _corpus_file in sorted(_CORPUS_DIR.glob("*.txt")):
     for _name, _source, _expected in _parse_corpus(_corpus_file):
-        _PARAMS.append(pytest.param(_source, _expected, id=f"{_corpus_file.stem}::{_name}"))
+        _PARAMS.append(
+            pytest.param(_source, _expected, id=f"{_corpus_file.stem}::{_name}")
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -131,6 +135,4 @@ def test_byte_ranges(source: str, expected: str) -> None:
     parser = tree_sitter.Parser(_LANGUAGE)
     tree = parser.parse(source.encode())
     actual = _render(tree.root_node)
-    assert actual == expected, (
-        f"\nActual:\n{actual}\n\nExpected:\n{expected}"
-    )
+    assert actual == expected, f"\nActual:\n{actual}\n\nExpected:\n{expected}"
