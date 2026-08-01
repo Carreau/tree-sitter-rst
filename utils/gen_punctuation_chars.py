@@ -41,7 +41,7 @@ def generate_c_chars_define(name: str, chars: str, expects_range=False) -> list[
             if ch == "-":
                 continue  # skip range sign
             if is_ascii(ch):
-                raise Exception(f"Expected unicode, found ascii: {ch}")
+                raise Exception(f"Expected unicode, found ascii: {ch}")  # noqa: TRY002
             c_char_ranges.append(f"{INDENT}{{{c_repr(range_start)}, {c_repr(ch)}}},")
             range_start = None
 
@@ -56,10 +56,10 @@ def generate_c_chars_define(name: str, chars: str, expects_range=False) -> list[
 
     if len(c_char_ranges) > 2:
         if not expects_range:
-            raise Exception(f"Expected no ranges, but a range was found for {name}")
+            raise Exception(f"Expected no ranges, but a range was found for {name}")  # noqa: TRY002
         return c_chars + c_char_ranges
     if expects_range:
-        raise Exception(f"Expected ranges, but none found for {name}")
+        raise Exception(f"Expected ranges, but none found for {name}")  # noqa: TRY002
     return c_chars
 
 
@@ -79,7 +79,9 @@ if __name__ == "__main__":
     lines.append("")
 
     lines.extend(
-        generate_c_chars_define("end_chars", closing_delimiters + closers, expects_range=False)
+        generate_c_chars_define(
+            "end_chars", closing_delimiters + closers, expects_range=False
+        )
     )
     lines.append("")
 

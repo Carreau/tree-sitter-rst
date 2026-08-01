@@ -243,17 +243,43 @@ static bool rst_scanner_scan(RSTScanner* scanner)
     return parse_reference_end_mark(scanner);
   }
 
+  // Sub-token dispatch for multi-token inline constructs.
+  if (valid_symbols[T_SUBSTITUTION_NAME]) {
+    return parse_substitution_name(scanner);
+  }
+  if (current == '|' && valid_symbols[T_SUBSTITUTION_CLOSE]) {
+    return parse_substitution_close(scanner);
+  }
+  if (valid_symbols[T_INLINE_TARGET_NAME]) {
+    return parse_inline_target_name(scanner);
+  }
+  if (current == '`' && valid_symbols[T_INLINE_TARGET_CLOSE]) {
+    return parse_inline_target_close(scanner);
+  }
+  if (valid_symbols[T_CITATION_REFERENCE_LABEL]) {
+    return parse_citation_reference_label(scanner);
+  }
+  if (valid_symbols[T_FOOTNOTE_REFERENCE_LABEL]) {
+    return parse_footnote_reference_label(scanner);
+  }
+  if (current == ']' && valid_symbols[T_REFERENCE_LABEL_CLOSE]) {
+    return parse_reference_label_close(scanner);
+  }
+  if (current == '_' && valid_symbols[T_REFERENCE_BARE_MARK]) {
+    return parse_reference_bare_mark(scanner);
+  }
+
   if (is_inline_markup_start_char(current)
       && (valid_symbols[T_EMPHASIS]
           || valid_symbols[T_STRONG]
           || valid_symbols[T_INTERPRETED_TEXT]
           || valid_symbols[T_INTERPRETED_TEXT_PREFIX]
           || valid_symbols[T_LITERAL]
-          || valid_symbols[T_SUBSTITUTION_REFERENCE]
-          || valid_symbols[T_INLINE_TARGET]
-          || valid_symbols[T_FOOTNOTE_REFERENCE]
-          || valid_symbols[T_CITATION_REFERENCE]
-          || valid_symbols[T_REFERENCE]
+          || valid_symbols[T_SUBSTITUTION_OPEN]
+          || valid_symbols[T_INLINE_TARGET_OPEN]
+          || valid_symbols[T_FOOTNOTE_REFERENCE_OPEN]
+          || valid_symbols[T_CITATION_REFERENCE_OPEN]
+          || valid_symbols[T_REFERENCE_BARE_NAME]
           || valid_symbols[T_REFERENCE_OPEN_BACKTICK])) {
     return parse_inline_markup(scanner);
   }
@@ -291,7 +317,7 @@ static bool rst_scanner_scan(RSTScanner* scanner)
       && !is_internal_reference_char(current)
       && !is_start_char(current)
       && !is_end_char(current)
-      && valid_symbols[T_REFERENCE]) {
+      && valid_symbols[T_REFERENCE_BARE_NAME]) {
     return parse_reference(scanner);
   }
 

@@ -197,23 +197,33 @@ Edge cases:
 
 (document
   (paragraph
-   (interpreted_text (role)))
+    (interpreted_text
+      (role)))
   (paragraph
-   (interpreted_text (role)))
+    (interpreted_text
+      (role)))
   (paragraph
-   (interpreted_text (role))
-   (interpreted_text (role)))
+    (interpreted_text
+      (role))
+    (interpreted_text
+      (role)))
   (paragraph
-   (interpreted_text (role)))
+    (interpreted_text
+      (role)))
   (paragraph
-   (interpreted_text (role)))
+    (interpreted_text
+      (role)))
   (paragraph
-   (interpreted_text (role)))
+    (interpreted_text
+      (role)))
   (paragraph)
   (field_list
     (field
-      (field_name (escape_sequence) (interpreted_text))
-      (field_body (paragraph)))))
+      (field_name
+        (escape_sequence)
+        (interpreted_text))
+      (field_body
+        (paragraph)))))
 
 =======================================================
 Interpreted text with roles - double backtick (invalid)
@@ -265,40 +275,40 @@ I'm in [``brackets``, ``too``].
 ---
 
 (document
- (paragraph
-  (literal)
-  (literal)
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal)
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal))
- (paragraph
-  (literal)
-  (literal))
- (paragraph
-  (literal)
-  (literal))
- (paragraph
-  (literal)
-  (literal)))
+  (paragraph
+    (literal)
+    (literal)
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal)
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal))
+  (paragraph
+    (literal)
+    (literal))
+  (paragraph
+    (literal)
+    (literal))
+  (paragraph
+    (literal)
+    (literal)))
 
 =======================
 Substitution references
@@ -328,26 +338,37 @@ I'm in (|parenthesis|)
 ---
 
 (document
- (paragraph
-  (substitution_reference)
-  (substitution_reference)
-  (substitution_reference))
- (paragraph
-  (substitution_reference))
- (paragraph
-  (substitution_reference)
-  (escape_sequence))
- (paragraph
-  (substitution_reference))
- (paragraph
-  (substitution_reference))
- (paragraph
-  (substitution_reference)
-  (substitution_reference))
- (paragraph
-  (substitution_reference))
- (paragraph
-  (substitution_reference)))
+  (paragraph
+    (substitution_reference
+      (name))
+    (substitution_reference
+      (name))
+    (substitution_reference
+      (name)))
+  (paragraph
+    (substitution_reference
+      (name)))
+  (paragraph
+    (substitution_reference
+      (name))
+    (escape_sequence))
+  (paragraph
+    (substitution_reference
+      (name)))
+  (paragraph
+    (substitution_reference
+      (name)))
+  (paragraph
+    (substitution_reference
+      (name))
+    (substitution_reference
+      (name)))
+  (paragraph
+    (substitution_reference
+      (name)))
+  (paragraph
+    (substitution_reference
+      (name))))
 
 =======================
 Inline internal targets
@@ -371,20 +392,28 @@ I'm in (_`parenthesis`)
 
 (document
   (paragraph
-    (inline_target)
-    (inline_target)
-    (inline_target))
+    (inline_target
+      (name))
+    (inline_target
+      (name))
+    (inline_target
+      (name)))
   (paragraph
-    (inline_target))
+    (inline_target
+      (name)))
   (paragraph
-    (inline_target)
+    (inline_target
+      (name))
     (escape_sequence))
   (paragraph
-    (inline_target))
+    (inline_target
+      (name)))
   (paragraph
-    (inline_target))
+    (inline_target
+      (name)))
   (paragraph
-    (inline_target)))
+    (inline_target
+      (name))))
 
 ===================
 Footnote references
@@ -402,13 +431,18 @@ I'm a [1]_
 
 (document
   (paragraph
-    (footnote_reference)
-    (footnote_reference)
-    (footnote_reference))
+    (footnote_reference
+      (label))
+    (footnote_reference
+      (label))
+    (footnote_reference
+      (label)))
   (paragraph
-    (footnote_reference))
+    (footnote_reference
+      (label)))
   (paragraph
-    (footnote_reference)
+    (footnote_reference
+      (label))
     (escape_sequence)))
 
 ===================
@@ -431,12 +465,16 @@ Not [a--citation] citation.
 
 (document
   (paragraph
-    (citation_reference)
-    (citation_reference))
+    (citation_reference
+      (label))
+    (citation_reference
+      (label)))
   (paragraph
-    (citation_reference))
+    (citation_reference
+      (label)))
   (paragraph
-    (citation_reference)
+    (citation_reference
+      (label))
     (escape_sequence))
   (paragraph))
 
@@ -464,26 +502,34 @@ lonely__
 
 (document
   (paragraph
-    (reference)
-    (reference)
+    (reference
+      (name))
+    (reference
+      (name))
     (reference
       (name))
     (reference
       (name)))
   (paragraph
-    (reference)
-    (reference))
+    (reference
+      (name))
+    (reference
+      (name)))
   (paragraph
     (reference
       (name))
     (escape_sequence))
   (paragraph
-    (reference)
-    (reference))
+    (reference
+      (name))
+    (reference
+      (name)))
   (paragraph
-    (reference))
+    (reference
+      (name)))
   (paragraph
-    (reference)))
+    (reference
+      (name))))
 
 =======================================
 Hyperlink references with embedded URIs
@@ -564,21 +610,26 @@ This isn't a standalone_hyperlink "http:"
 ---
 
 (document
-  (paragraph (standalone_hyperlink))
-  (paragraph (standalone_hyperlink))
-  (paragraph (standalone_hyperlink))
-  (paragraph (standalone_hyperlink))
-  (paragraph (standalone_hyperlink))
   (paragraph
-   (standalone_hyperlink)
-   (escape_sequence)
-   (escape_sequence)
-   (escape_sequence)
-   (escape_sequence))
+    (standalone_hyperlink))
   (paragraph
-   (standalone_hyperlink)
-   (standalone_hyperlink)
-   (standalone_hyperlink)))
+    (standalone_hyperlink))
+  (paragraph
+    (standalone_hyperlink))
+  (paragraph
+    (standalone_hyperlink))
+  (paragraph
+    (standalone_hyperlink))
+  (paragraph
+    (standalone_hyperlink)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence))
+  (paragraph
+    (standalone_hyperlink)
+    (standalone_hyperlink)
+    (standalone_hyperlink)))
 
 =========================
 Unicode Punctuation Chars
